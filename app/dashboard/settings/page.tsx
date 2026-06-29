@@ -11,9 +11,13 @@ import { Separator } from "@/components/ui/separator";
 // Add to imports
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
+import { Suspense } from 'react'
+
+
 
 export const dynamic = 'force-dynamic'
-export default function AccountSettings() {
+
+function AccountSettingsInner() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
@@ -566,6 +570,19 @@ const getNotificationLink = (type: string) => {
           </div>
         </div>
       )}
+
+    
     </div>
   );
+
+
+}
+
+
+export default function AccountSettings() {
+  return (
+    <Suspense fallback={null}>
+      <AccountSettingsInner />
+    </Suspense>
+  )
 }
