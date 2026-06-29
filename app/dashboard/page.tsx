@@ -24,6 +24,8 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { FamilyTree, type FamilyMember } from "@/components/family-tree"
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from 'react'
+
 
 interface Milestone {
   title: string;
@@ -58,7 +60,7 @@ const tabs = [
   { id: "roots", label: "Family Members", icon: GitBranch },
 ]
 
-export default function DashboardPage() {
+function DashboardPageInner() {
   const [activeTab, setActiveTab] = useState("vault")
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false)
   const [selectedMemory, setSelectedMemory] = useState<Memory | null>(null)
@@ -1804,3 +1806,12 @@ const removeAttachment = (index: number) => {
   ) 
 }
   
+
+
+export default function DashboardPage() {
+  return (
+    <Suspense fallback={null}>
+      <DashboardPageInner />
+    </Suspense>
+  )
+}
