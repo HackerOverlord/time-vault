@@ -35,7 +35,7 @@ interface Milestone {
   isRecordingActive: boolean; 
 }
 
-
+export const dynamic = 'force-dynamic'
 
 export type Memory = {
   id: string

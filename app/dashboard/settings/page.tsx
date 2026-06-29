@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { useSearchParams } from 'next/navigation'
 import { useRouter } from 'next/navigation'
 
-
+export const dynamic = 'force-dynamic'
 export default function AccountSettings() {
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
