@@ -24,7 +24,8 @@ export default function LoginPage({ onNavigate }: LoginViewProps) {
     try {
       // NOTE: 'localhost:5000' will break on Vercel production. 
       // Consider using an environment variable like process.env.NEXT_PUBLIC_API_URL here later!
-      const response = await fetch('http://localhost:5000/api/login', {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+      const response = await fetch(`${apiUrl}/api/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(formData),

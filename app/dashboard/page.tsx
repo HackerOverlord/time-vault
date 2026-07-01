@@ -27,9 +27,8 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense } from 'react'
 
 
-interface DashboardViewProps {
-  onNavigate: (screen: 'login' | 'register' | 'dashboard') => void
-}
+interface DashboardViewProps {}
+
 
 
 interface Milestone {
@@ -1813,7 +1812,7 @@ const removeAttachment = (index: number) => {
   
 
 
-export default function DashboardPage({ onNavigate }: DashboardViewProps) {
+export default function DashboardPage() {
   return (
     <Suspense fallback={null}>
       <DashboardPageInner />

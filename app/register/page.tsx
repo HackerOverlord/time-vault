@@ -24,7 +24,8 @@ export default function RegisterPage({ onNavigate }: RegisterViewProps) {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    const response = await fetch('http://localhost:5000/api/register', {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
+  const response = await fetch(`${apiUrl}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
