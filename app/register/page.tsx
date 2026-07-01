@@ -1,43 +1,36 @@
 "use client"
-
 import { useState } from "react"
-// REMOVED: useRouter is no longer needed since we aren't changing URL paths
-import { User, Mail, Lock } from "lucide-react"
+import { useRouter } from "next/navigation"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
 
-// 1. Define the props interface directly inside this file
-interface RegisterViewProps {
-  onNavigate: (screen: 'login' | 'register' | 'dashboard') => void
-}
-
-// 2. Accept the onNavigate prop here
-export default function RegisterPage({ onNavigate }: RegisterViewProps) {
+export default function RegisterPage() {
+  const router = useRouter()
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    email: "", 
+    email: "",
     password: ""
   })
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000';
-  const response = await fetch(`${apiUrl}/api/register`, {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    const response = await fetch(`${apiUrl}/api/register`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify({
         name: `${formData.firstName} ${formData.lastName}`.trim(),
         email: formData.email,
         password: formData.password,
       }),
     })
-
     if (response.ok) {
-      // 3. FIX: State-driven navigation to dashboard instead of router.push
-      onNavigate('dashboard')
+      router.push('/dashboard')
     }
   }
 
@@ -46,7 +39,6 @@ export default function RegisterPage({ onNavigate }: RegisterViewProps) {
       <div className="mb-20 animate-in fade-in zoom-in duration-1000">
         <Logo />
       </div>
-
       <Card className="w-full max-w-lg border-border/50 bg-card/95 backdrop-blur-xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold">Secure Your Legacy</CardTitle>
@@ -78,7 +70,6 @@ export default function RegisterPage({ onNavigate }: RegisterViewProps) {
                 />
               </div>
             </div>
-
             <div className="space-y-2">
               <label htmlFor="email" className="text-sm font-medium text-zinc-400">Email</label>
               <Input
@@ -91,7 +82,6 @@ export default function RegisterPage({ onNavigate }: RegisterViewProps) {
                 required
               />
             </div>
-
             <div className="space-y-2">
               <label htmlFor="password" className="text-sm font-medium text-zinc-400">Master Password</label>
               <Input
@@ -104,19 +94,12 @@ export default function RegisterPage({ onNavigate }: RegisterViewProps) {
                 required
               />
             </div>
-
             <Button type="submit" className="cursor-pointer w-full bg-primary">Create Secure Vault</Button>
-
             <p className="text-center text-sm text-zinc-500 mt-4">
               Already have an account?{" "}
-              {/* 4. FIX: Use onNavigate to switch back to the login view instantly */}
-              <button 
-                type="button" 
-                onClick={() => onNavigate('login')} 
-                className="text-primary hover:underline cursor-pointer"
-              >
+              <Link href="/login" className="text-primary hover:underline cursor-pointer">
                 Sign in
-              </button>
+              </Link>
             </p>
           </form>
         </CardContent>
