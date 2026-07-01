@@ -149,7 +149,7 @@ useEffect(() => {
   const handleJoinFamily = async () => {
   if (joinCode.length < 7) return;
   try {
-    const res = await fetch('http://localhost:5000/api/join-family', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/join-family`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -163,7 +163,7 @@ useEffect(() => {
       setInSharedFamily(true)
 
   // Re-fetch family members so UI updates without a page refresh
-  const treeRes = await fetch('http://localhost:5000/api/family-members', { credentials: 'include' });
+  const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { credentials: 'include' });
   if (treeRes.ok) {
     const treeData = await treeRes.json();
     setFamilyMembers(treeData);
@@ -227,7 +227,7 @@ useEffect(() => {
 
   const handleDeleteVault = async (id: string) => {
   try {
-    const response = await fetch(`http://localhost:5000/api/vaults/${id}`, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/vaults/${id}`, {
       method: "DELETE",
       credentials: "include"
     });
@@ -256,7 +256,7 @@ useEffect(() => {
 
   const fetchMemories = async () => {
   try {
-    const res = await fetch('http://localhost:5000/api/memories', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories`, {
       credentials: 'include'
     });
     if (res.ok) {
@@ -318,7 +318,7 @@ const handleCreateMemory = async (newMemory: any) => {
   }
   setEmailStatus('loading');
   try {
-    const res = await fetch('http://localhost:5000/api/check-email', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/check-email`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email }),
@@ -341,13 +341,13 @@ const handleCreateMemory = async (newMemory: any) => {
       await fetchMemories();
       const options = { credentials: 'include' as const };
       try {
-        fetch('http://localhost:5000/api/heartbeat', { method: 'POST', ...options }); 
+        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/heartbeat`, { method: 'POST', ...options }); 
 
         const [sharedRes, treeRes, meRes, familyStatusRes] = await Promise.all([
-  fetch('http://localhost:5000/api/memories/shared', options),
-  fetch('http://localhost:5000/api/family-members', options),
-  fetch('http://localhost:5000/api/me', options),
-  fetch('http://localhost:5000/api/family-status', options)
+  fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories/shared`, options),
+  fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, options),
+  fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, options),
+  fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-status`, options)
 ]);
 
 if (meRes.ok) {
@@ -383,7 +383,7 @@ if (meRes.ok) {
   }, []);
 
   const handleMemoryClick = async (id: string) => {
-  const res = await fetch(`http://localhost:5000/api/memories/${id}`, { credentials: 'include' });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories/${id}`, { credentials: 'include' });
   if (res.ok) {
     const data = await res.json();
     console.log("Memory API response:", data); // Log to see all fields
@@ -527,7 +527,7 @@ const removeAttachment = (index: number) => {
   if (confirmed) {
     try {
       // 1. Tell the backend to delete the member from the database
-      const res = await fetch(`http://localhost:5000/api/family-members/${id}`, {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${id}`, {
         method: 'DELETE',
         credentials: 'include'
       });
@@ -770,7 +770,7 @@ const removeAttachment = (index: number) => {
       variant="outline"
       className="rounded-xl !border-blue-500/50 !text-blue-400 !bg-transparent hover:!bg-transparent hover:!text-blue-400 hover:opacity-70 transition-opacity cursor-pointer"
       onClick={async () => {
-        const res = await fetch('http://localhost:5000/api/get-my-code', { credentials: 'include' });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/get-my-code`, { credentials: 'include' });
         if (res.ok) {
           const data = await res.json();
           setMasterInviteCode(data.invite_code);
@@ -845,14 +845,14 @@ const removeAttachment = (index: number) => {
         <Button
           className="flex-1 bg-red-600 hover:bg-red-700 rounded-xl py-6 cursor-pointer"
           onClick={async () => {
-            const res = await fetch('http://localhost:5000/api/leave-family', {
+            const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/leave-family`, {
               method: 'POST',
               credentials: 'include'
             })
             if (res.ok) {
               setIsLeaveModalOpen(false)
               setInSharedFamily(false)
-              const treeRes = await fetch('http://localhost:5000/api/family-members', { credentials: 'include' })
+              const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { credentials: 'include' })
               if (treeRes.ok) {
                 const treeData = await treeRes.json()
                 setFamilyMembers(treeData)
@@ -1420,7 +1420,7 @@ const removeAttachment = (index: number) => {
     if (!editingMember?.id) return;
     if (confirm(`Are you sure you want to remove ${firstName}?`)) {
       try {
-        const res = await fetch(`http://localhost:5000/api/family-members/${editingMember.id}`, {
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${editingMember.id}`, {
           method: 'DELETE',
           credentials: 'include'
         });
@@ -1484,8 +1484,8 @@ const removeAttachment = (index: number) => {
                   try {
                     // Dynamically alter target endpoint and method based on mode
                     const url = isEditingMode 
-                      ? `http://localhost:5000/api/family-members/${editingMember.id}`
-                      : 'http://localhost:5000/api/family-members';
+                      ? `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${editingMember.id}`
+                      : `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`;
                       
                     const method = isEditingMode ? 'PUT' : 'POST';
 
@@ -1524,7 +1524,7 @@ const removeAttachment = (index: number) => {
                       
                       // IF ADDING A PARENT: We must update the OLD member to point to the NEW parent
                       if (isParentRelationship && targetParentId) {
-                        await fetch(`http://localhost:5000/api/family-members/${targetParentId}`, {
+                        await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${targetParentId}`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ parentId: savedMember.id }), // Set ssss's parent to aaaa's new ID

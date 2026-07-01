@@ -51,7 +51,7 @@ const [notifications, setNotifications] = useState<any[]>([])
 
 useEffect(() => {
   if (activeTab === 'notifications') {
-    fetch('http://localhost:5000/api/notifications', { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, { credentials: 'include' })
       .then(r => r.json())
       .then(setNotifications)
   }
@@ -71,7 +71,7 @@ const handleChangePassword = async () => {
   }
   setSavingPassword(true)
   try {
-    const res = await fetch('http://localhost:5000/api/change-password', {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/change-password`, {
       method: 'POST',
       credentials: 'include',
       headers: { 'Content-Type': 'application/json' },
@@ -93,7 +93,7 @@ const handleChangePassword = async () => {
 }
 
 const handleDeleteAccount = async () => {
-  const res = await fetch('http://localhost:5000/api/delete-account', {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/delete-account`, {
     method: 'DELETE',
     credentials: 'include',
     headers: { 'Content-Type': 'application/json' },
@@ -109,14 +109,14 @@ const handleDeleteAccount = async () => {
 
 
 const markRead = async (id: number) => {
-  await fetch(`http://localhost:5000/api/notifications/read/${id}`, {
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read/${id}`, {
     method: 'POST', credentials: 'include'
   })
   setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
 }
 
 const markAllRead = async () => {
-  await fetch('http://localhost:5000/api/notifications/read-all', {
+  await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
     method: 'POST', credentials: 'include'
   })
   setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
@@ -135,7 +135,7 @@ const getNotificationLink = (type: string) => {
 }
 
   useEffect(() => {
-    fetch('http://localhost:5000/api/me', { credentials: 'include' })
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, { credentials: 'include' })
       .then(r => r.json())
       .then(data => {
         setFirstName(data.firstName || '');
@@ -204,7 +204,7 @@ const getNotificationLink = (type: string) => {
     setSaving(true);
     setSaveMsg('');
     try {
-      const res = await fetch('http://localhost:5000/api/me', {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, {
         method: 'PUT',
         credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
