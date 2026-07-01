@@ -32,7 +32,7 @@ export function DashboardHeader({ user, notifRefresh }: DashboardHeaderProps) {
 const [unreadCount, setUnreadCount] = useState(0)
 
 const fetchNotifications = async () => {
-  const res = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/notifications', { credentials: 'include' })
+  const res = await fetch('http://localhost:5000/api/notifications', { credentials: 'include' })
   if (res.ok) {
     const data = await res.json()
     setNotifications(data)
@@ -50,7 +50,7 @@ const getNotificationLink = (type: string) => {
 }
 
 const markRead = async (id: number) => {
-  await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read/${id}`, {
+  await fetch(`http://localhost:5000/api/notifications/read/${id}`, {
     method: 'POST', credentials: 'include'
   })
   setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
@@ -58,7 +58,7 @@ const markRead = async (id: number) => {
 }
 
 const markAllRead = async () => {
-  await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read-all', {
+  await fetch('http://localhost:5000/api/notifications/read-all', {
     method: 'POST', credentials: 'include'
   })
   setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))

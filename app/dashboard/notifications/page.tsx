@@ -14,13 +14,13 @@ export default function NotificationsPage() {
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/api/me', { credentials: 'include' })
+    fetch('http://localhost:5000/api/me', { credentials: 'include' })
       .then(r => r.json()).then(setUser)
-    fetch('${process.env.NEXT_PUBLIC_API_URL}/api/notifications', { credentials: 'include' })
+    fetch('http://localhost:5000/api/notifications', { credentials: 'include' })
       .then(r => r.json()).then(data => {
         setNotifications(data)
         // mark all read on page visit
-        fetch('${process.env.NEXT_PUBLIC_API_URL}/api/notifications/read-all', {
+        fetch('http://localhost:5000/api/notifications/read-all', {
           method: 'POST', credentials: 'include'
         })
       })

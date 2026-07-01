@@ -1,25 +1,30 @@
 "use client"
 
 import { useState } from "react"
-import { useRouter } from "next/navigation"
+// REMOVED: useRouter is no longer needed since we aren't changing URL paths
 import { User, Mail, Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card"
 import { Logo } from "@/components/logo"
 
-export default function RegisterPage() {
+// 1. Define the props interface directly inside this file
+interface RegisterViewProps {
+  onNavigate: (screen: 'login' | 'register' | 'dashboard') => void
+}
+
+// 2. Accept the onNavigate prop here
+export default function RegisterPage({ onNavigate }: RegisterViewProps) {
   const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
     email: "", 
     password: ""
   })
-  const router = useRouter()
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault()
-    const response = await fetch('${process.env.NEXT_PUBLIC_API_URL}/api/register', {
+    const response = await fetch('http://localhost:5000/api/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
@@ -30,7 +35,8 @@ export default function RegisterPage() {
     })
 
     if (response.ok) {
-      router.push('/dashboard')
+      // 3. FIX: State-driven navigation to dashboard instead of router.push
+      onNavigate('dashboard')
     }
   }
 
@@ -101,13 +107,16 @@ export default function RegisterPage() {
             <Button type="submit" className="cursor-pointer w-full bg-primary">Create Secure Vault</Button>
 
             <p className="text-center text-sm text-zinc-500 mt-4">
-  Already have an account?{" "}
-  <button type="button" onClick={() => router.push('/login')} className="text-primary hover:underline cursor-pointer">
-    Sign in
-  </button>
-</p>
-
-
+              Already have an account?{" "}
+              {/* 4. FIX: Use onNavigate to switch back to the login view instantly */}
+              <button 
+                type="button" 
+                onClick={() => onNavigate('login')} 
+                className="text-primary hover:underline cursor-pointer"
+              >
+                Sign in
+              </button>
+            </p>
           </form>
         </CardContent>
       </Card>

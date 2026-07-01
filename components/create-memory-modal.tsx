@@ -110,7 +110,7 @@ useEffect(() => {
 
   useEffect(() => {
     if (open) {
-      fetch('${process.env.NEXT_PUBLIC_API_URL}/api/family-members', { 
+      fetch('http://localhost:5000/api/family-members', { 
         credentials: 'include' 
       })
         .then(res => res.json())
@@ -206,8 +206,8 @@ const payload = {
 
 
 const endpoint = editingDraft 
-  ? `${process.env.NEXT_PUBLIC_API_URL}/api/memories/${editingDraft.id}` 
-  : '${process.env.NEXT_PUBLIC_API_URL}/api/memories';
+  ? `http://localhost:5000/api/memories/${editingDraft.id}` 
+  : 'http://localhost:5000/api/memories';
 
 const method = editingDraft ? 'PUT' : 'POST';
 
