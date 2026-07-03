@@ -14,17 +14,20 @@ export default function NotificationsPage() {
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, { credentials: 'include' })
-      .then(r => r.json()).then(setUser)
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, { credentials: 'include' })
-      .then(r => r.json()).then(data => {
-        setNotifications(data)
-        // mark all read on page visit
-        fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
-          method: 'POST', credentials: 'include'
-        })
+  const token = localStorage.getItem('token')
+  const headers = { Authorization: `Bearer ${token}` }
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+
+  fetch(`${apiUrl}/api/me`, { headers })
+    .then(r => r.json()).then(setUser)
+  fetch(`${apiUrl}/api/notifications`, { headers })
+    .then(r => r.json()).then(data => {
+      setNotifications(data)
+      fetch(`${apiUrl}/api/notifications/read-all`, {
+        method: 'POST', headers
       })
-  }, [])
+    })
+}, [])
 
   return (
     <div className="min-h-screen bg-background">

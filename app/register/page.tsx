@@ -17,22 +17,23 @@ export default function RegisterPage() {
   })
 
   const handleRegister = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const apiUrl = process.env.NEXT_PUBLIC_API_URL || `${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}`
-    const response = await fetch(`${apiUrl}/api/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      credentials: 'include',
-      body: JSON.stringify({
-        name: `${formData.firstName} ${formData.lastName}`.trim(),
-        email: formData.email,
-        password: formData.password,
-      }),
-    })
-    if (response.ok) {
-      router.push('/dashboard')
-    }
+  e.preventDefault()
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+  const response = await fetch(`${apiUrl}/api/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      name: `${formData.firstName} ${formData.lastName}`.trim(),
+      email: formData.email,
+      password: formData.password,
+    }),
+  })
+  if (response.ok) {
+    const data = await response.json()
+    localStorage.setItem('token', data.token)
+    router.push('/dashboard')
   }
+}
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-start bg-[#0a0a0a] p-4 pt-20">

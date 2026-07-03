@@ -13,28 +13,28 @@ export default function LoginPage() {
   const [isLoading, setIsLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setIsLoading(true)
-    try {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
-      const response = await fetch(`${apiUrl}/api/login`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData),
-        credentials: 'include',
-      })
-      if (response.ok) {
-        router.push('/dashboard')
-      } else {
-        alert("Invalid credentials")
-      }
-    } catch (err) {
-      console.error("Login error:", err)
-    } finally {
-      setIsLoading(false)
+  e.preventDefault()
+  setIsLoading(true)
+  try {
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
+    const response = await fetch(`${apiUrl}/api/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(formData),
+    })
+    if (response.ok) {
+      const data = await response.json()
+      localStorage.setItem('token', data.token)
+      router.push('/dashboard')
+    } else {
+      alert("Invalid credentials")
     }
+  } catch (err) {
+    console.error("Login error:", err)
+  } finally {
+    setIsLoading(false)
   }
-
+}
   return (
     <main className="min-h-screen w-full flex flex-col items-center justify-center bg-background px-4">
       <div className="pt-12 pb-8 flex justify-center w-full">

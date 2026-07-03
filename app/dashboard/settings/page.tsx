@@ -51,7 +51,10 @@ const [notifications, setNotifications] = useState<any[]>([])
 
 useEffect(() => {
   if (activeTab === 'notifications') {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, { credentials: 'include' })
+    const token = localStorage.getItem('token')
+    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, {
+      headers: { Authorization: `Bearer ${token}` }
+    })
       .then(r => r.json())
       .then(setNotifications)
   }
@@ -72,11 +75,13 @@ const handleChangePassword = async () => {
   setSavingPassword(true)
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/change-password`, {
-      method: 'POST',
-      credentials: 'include',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
-    })
+  method: 'POST',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
+})
     const data = await res.json()
     if (res.ok) {
       setPasswordMsg('Password updated successfully.')
@@ -94,11 +99,18 @@ const handleChangePassword = async () => {
 
 const handleDeleteAccount = async () => {
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/delete-account`, {
-    method: 'DELETE',
-    credentials: 'include',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ password: deletePassword })
-  })
+  method: 'DELETE',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ password: deletePassword })
+})
+if (res.ok) {
+  localStorage.removeItem('token')
+  router.push('/login')
+}
+
   const data = await res.json()
   if (res.ok) {
     router.push('/login')
@@ -110,14 +122,16 @@ const handleDeleteAccount = async () => {
 
 const markRead = async (id: number) => {
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read/${id}`, {
-    method: 'POST', credentials: 'include'
+    method: 'POST',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   })
   setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
 }
 
 const markAllRead = async () => {
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
-    method: 'POST', credentials: 'include'
+    method: 'POST',
+    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
   })
   setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
 }
@@ -134,16 +148,19 @@ const getNotificationLink = (type: string) => {
   }
 }
 
-  useEffect(() => {
-    fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, { credentials: 'include' })
-      .then(r => r.json())
-      .then(data => {
-        setFirstName(data.firstName || '');
-        setLastName(data.lastName || '');
-        setEmail(data.email || '');
-        if (data.avatar) setProfilePreview(data.avatar);
-      });
-  }, []);
+useEffect(() => {
+  const token = localStorage.getItem('token')
+  fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
+    .then(r => r.json())
+    .then(data => {
+      setFirstName(data.firstName || '')
+      setLastName(data.lastName || '')
+      setEmail(data.email || '')
+      if (data.avatar) setProfilePreview(data.avatar)
+    })
+}, [])
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -205,11 +222,13 @@ const getNotificationLink = (type: string) => {
     setSaveMsg('');
     try {
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, {
-        method: 'PUT',
-        credentials: 'include',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ firstName, lastName, avatar: profilePreview }),
-      });
+  method: 'PUT',
+  headers: {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  },
+  body: JSON.stringify({ firstName, lastName, avatar: profilePreview }),
+})
       if (res.ok) {
         setSaveMsg('Saved!');
         setTimeout(() => setSaveMsg(''), 3000);

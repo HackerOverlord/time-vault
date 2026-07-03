@@ -32,12 +32,20 @@ export function DashboardHeader({ user, notifRefresh }: DashboardHeaderProps) {
 const [unreadCount, setUnreadCount] = useState(0)
 
 const fetchNotifications = async () => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, { credentials: 'include' })
+  const token = localStorage.getItem('token')
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, {
+    headers: { Authorization: `Bearer ${token}` }
+  })
   if (res.ok) {
     const data = await res.json()
     setNotifications(data)
     setUnreadCount(data.filter((n: any) => !n.is_read).length)
   }
+}
+
+const handleLogout = () => {
+  localStorage.removeItem('token')
+  router.push('/login')
 }
 
 const getNotificationLink = (type: string) => {
@@ -50,16 +58,20 @@ const getNotificationLink = (type: string) => {
 }
 
 const markRead = async (id: number) => {
+  const token = localStorage.getItem('token')
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read/${id}`, {
-    method: 'POST', credentials: 'include'
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
   })
   setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
   setUnreadCount(prev => Math.max(0, prev - 1))
 }
 
 const markAllRead = async () => {
+  const token = localStorage.getItem('token')
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
-    method: 'POST', credentials: 'include'
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}` }
   })
   setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
   setUnreadCount(0)
@@ -181,3 +193,6 @@ useEffect(() => {
     </header>
   )
 }
+
+
+
