@@ -111,8 +111,8 @@ useEffect(() => {
   useEffect(() => {
     if (open) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { 
-        credentials: 'include' 
-      })
+  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+})
         .then(res => res.json())
         .then(data => {
           if (Array.isArray(data)) {
@@ -213,8 +213,10 @@ const method = editingDraft ? 'PUT' : 'POST';
 
 const response = await fetch(endpoint, {
   method: method,
-  headers: { 'Content-Type': 'application/json' },
-  credentials: 'include', 
+  headers: { 
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${localStorage.getItem('token')}`
+  },
   body: JSON.stringify(payload),
 });
 
