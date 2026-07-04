@@ -149,7 +149,7 @@ useEffect(() => {
   const handleJoinFamily = async () => {
   if (joinCode.length < 7) return;
   try {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/join-family`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` },
@@ -163,7 +163,7 @@ useEffect(() => {
       setInSharedFamily(true)
 
   // Re-fetch family members so UI updates without a page refresh
-  const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+  const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
   if (treeRes.ok) {
     const treeData = await treeRes.json();
     setFamilyMembers(treeData);
@@ -229,7 +229,7 @@ useEffect(() => {
   try {
     const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/vaults/${id}`, {
       method: "DELETE",
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
     });
 
     if (!response.ok) {
@@ -257,7 +257,7 @@ useEffect(() => {
   const fetchMemories = async () => {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories`, {
-      headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+      headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
     });
     if (res.ok) {
       const data = await res.json();
@@ -320,7 +320,7 @@ const handleCreateMemory = async (newMemory: any) => {
   try {
     const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/check-email`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` },
       body: JSON.stringify({ email }),
     });
     const data = await res.json();
@@ -338,7 +338,7 @@ const handleCreateMemory = async (newMemory: any) => {
 
       
       await fetchMemories();
-      const token = localStorage.getItem('token')
+      const token = sessionStorage.getItem('token')
       const authHeaders = { headers: { Authorization: `Bearer ${token}` } }
       try {
         fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/heartbeat`, { method: 'POST', headers: { Authorization: `Bearer ${token}` } }); 
@@ -383,7 +383,7 @@ if (meRes.ok) {
   }, []);
 
   const handleMemoryClick = async (id: string) => {
-  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories/${id}`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/memories/${id}`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
   if (res.ok) {
     const data = await res.json();
     console.log("Memory API response:", data); // Log to see all fields
@@ -529,7 +529,7 @@ const removeAttachment = (index: number) => {
       // 1. Tell the backend to delete the member from the database
       const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${id}`, {
         method: 'DELETE',
-        headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+        headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
       });
 
       if (res.ok) {
@@ -770,7 +770,7 @@ const removeAttachment = (index: number) => {
       variant="outline"
       className="rounded-xl !border-blue-500/50 !text-blue-400 !bg-transparent hover:!bg-transparent hover:!text-blue-400 hover:opacity-70 transition-opacity cursor-pointer"
       onClick={async () => {
-        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/get-my-code`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } });
+        const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/get-my-code`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } });
         if (res.ok) {
           const data = await res.json();
           setMasterInviteCode(data.invite_code);
@@ -847,12 +847,12 @@ const removeAttachment = (index: number) => {
           onClick={async () => {
             const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/leave-family`, {
               method: 'POST',
-              headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+              headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
             })
             if (res.ok) {
               setIsLeaveModalOpen(false)
               setInSharedFamily(false)
-              const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { headers: { Authorization: `Bearer ${localStorage.getItem('token')}` } })
+              const treeRes = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` } })
               if (treeRes.ok) {
                 const treeData = await treeRes.json()
                 setFamilyMembers(treeData)
@@ -1422,7 +1422,7 @@ const removeAttachment = (index: number) => {
       try {
         const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${editingMember.id}`, {
           method: 'DELETE',
-          headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+          headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
         });
         if (res.ok) {
           setFamilyMembers(prev => prev.filter(m => m.id !== editingMember.id));
@@ -1491,7 +1491,7 @@ const removeAttachment = (index: number) => {
 
                     const res = await fetch(url, {
                       method: method,
-                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                       body: JSON.stringify(memberData),
                     });
 
@@ -1525,7 +1525,7 @@ const removeAttachment = (index: number) => {
                       if (isParentRelationship && targetParentId) {
                         await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members/${targetParentId}`, {
                           method: 'PUT',
-                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${localStorage.getItem('token')}` },
+                          headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${sessionStorage.getItem('token')}` },
                           body: JSON.stringify({ parentId: savedMember.id }),
                         });
                       }

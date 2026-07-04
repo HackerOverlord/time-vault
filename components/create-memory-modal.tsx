@@ -111,7 +111,7 @@ useEffect(() => {
   useEffect(() => {
     if (open) {
       fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/family-members`, { 
-  headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+  headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
 })
         .then(res => res.json())
         .then(data => {
@@ -215,7 +215,7 @@ const response = await fetch(endpoint, {
   method: method,
   headers: { 
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+    Authorization: `Bearer ${sessionStorage.getItem('token')}`
   },
   body: JSON.stringify(payload),
 });

@@ -14,7 +14,7 @@ export default function NotificationsPage() {
   const [user, setUser] = useState<any>(null)
 
   useEffect(() => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   const headers = { Authorization: `Bearer ${token}` }
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'
 

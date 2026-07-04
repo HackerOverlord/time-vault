@@ -32,7 +32,7 @@ export function DashboardHeader({ user, notifRefresh }: DashboardHeaderProps) {
 const [unreadCount, setUnreadCount] = useState(0)
 
 const fetchNotifications = async () => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, {
     headers: { Authorization: `Bearer ${token}` }
   })
@@ -44,7 +44,7 @@ const fetchNotifications = async () => {
 }
 
 const handleLogout = () => {
-  localStorage.removeItem('token')
+  sessionStorage.removeItem('token')
   router.push('/login')
 }
 
@@ -58,7 +58,7 @@ const getNotificationLink = (type: string) => {
 }
 
 const markRead = async (id: number) => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read/${id}`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` }
@@ -68,7 +68,7 @@ const markRead = async (id: number) => {
 }
 
 const markAllRead = async () => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
     method: 'POST',
     headers: { Authorization: `Bearer ${token}` }

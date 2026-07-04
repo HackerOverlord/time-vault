@@ -51,7 +51,7 @@ const [notifications, setNotifications] = useState<any[]>([])
 
 useEffect(() => {
   if (activeTab === 'notifications') {
-    const token = localStorage.getItem('token')
+    const token = sessionStorage.getItem('token')
     fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` }
     })
@@ -78,7 +78,7 @@ const handleChangePassword = async () => {
   method: 'POST',
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+    Authorization: `Bearer ${sessionStorage.getItem('token')}`
   },
   body: JSON.stringify({ current_password: currentPassword, new_password: newPassword })
 })
@@ -102,12 +102,12 @@ const handleDeleteAccount = async () => {
   method: 'DELETE',
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+    Authorization: `Bearer ${sessionStorage.getItem('token')}`
   },
   body: JSON.stringify({ password: deletePassword })
 })
 if (res.ok) {
-  localStorage.removeItem('token')
+  sessionStorage.removeItem('token')
   router.push('/login')
 }
 
@@ -123,7 +123,7 @@ if (res.ok) {
 const markRead = async (id: number) => {
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read/${id}`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
   })
   setNotifications(prev => prev.map(n => n.id === id ? { ...n, is_read: true } : n))
 }
@@ -131,7 +131,7 @@ const markRead = async (id: number) => {
 const markAllRead = async () => {
   await fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/notifications/read-all`, {
     method: 'POST',
-    headers: { Authorization: `Bearer ${localStorage.getItem('token')}` }
+    headers: { Authorization: `Bearer ${sessionStorage.getItem('token')}` }
   })
   setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
 }
@@ -149,7 +149,7 @@ const getNotificationLink = (type: string) => {
 }
 
 useEffect(() => {
-  const token = localStorage.getItem('token')
+  const token = sessionStorage.getItem('token')
   fetch(`${process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000'}/api/me`, {
     headers: { Authorization: `Bearer ${token}` }
   })
@@ -225,7 +225,7 @@ useEffect(() => {
   method: 'PUT',
   headers: {
     'Content-Type': 'application/json',
-    Authorization: `Bearer ${localStorage.getItem('token')}`
+    Authorization: `Bearer ${sessionStorage.getItem('token')}`
   },
   body: JSON.stringify({ firstName, lastName, avatar: profilePreview }),
 })
