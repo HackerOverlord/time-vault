@@ -182,10 +182,13 @@ useEffect(() => {
                 Settings
               </DropdownMenuItem>
               <DropdownMenuSeparator />
-                <DropdownMenuItem className="cursor-pointer hover:!bg-zinc-800 focus:!bg-zinc-800 text-white hover:!text-red-500 focus:!text-red-500 transition-colors">
-                  <LogOut className="mr-2 size-4" />
-                  Log out
-                </DropdownMenuItem>
+                <DropdownMenuItem 
+  onClick={handleLogout}
+  className="cursor-pointer hover:!bg-zinc-800 focus:!bg-zinc-800 text-white hover:!text-red-500 focus:!text-red-500 transition-colors"
+>
+  <LogOut className="mr-2 size-4" />
+  Log out
+</DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
