@@ -30,6 +30,7 @@ export default function RegisterPage() {
   })
   if (response.ok) {
     const data = await response.json()
+    localStorage.removeItem('token')
     localStorage.setItem('token', data.token)
     router.push('/dashboard')
   }
