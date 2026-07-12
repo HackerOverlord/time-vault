@@ -1,7 +1,6 @@
 "use client"
 
-import { useEffect, useState, useRef } from "react"
-import { useRouter } from "next/navigation"
+import { useEffect, useState } from "react"
 import { Lock, Bell, Settings, LogOut } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -15,18 +14,19 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 
+type NavigableScreen = 'login' | 'register' | 'feed' | 'settings' | 'group' | 'dashboard'
+
 interface DashboardHeaderProps {
   user?: {
     name: string
     email: string
     avatar?: string
   }
-
   notifRefresh?: number
+  onNavigate: (screen: NavigableScreen) => void
 }
 
-export function DashboardHeader({ user, notifRefresh }: DashboardHeaderProps) {
-  const router = useRouter()
+export function DashboardHeader({ user, notifRefresh, onNavigate }: DashboardHeaderProps) {
   const initials = user?.name?.split(" ").map(n => n[0]).join("").slice(0, 2).toUpperCase() || "TV"
   const [notifications, setNotifications] = useState<any[]>([])
 const [unreadCount, setUnreadCount] = useState(0)
@@ -45,17 +45,9 @@ const fetchNotifications = async () => {
 
 const handleLogout = () => {
   sessionStorage.removeItem('token')
-  router.push('/login')
+  onNavigate('login')
 }
 
-const getNotificationLink = (type: string) => {
-  switch (type) {
-    case 'vault_received': return '/dashboard?tab=inbox'
-    case 'vault_sent':
-    case 'vault_deleted': return '/dashboard?tab=vault'
-    default: return '/dashboard'
-  }
-}
 
 const markRead = async (id: number) => {
   const token = sessionStorage.getItem('token')
@@ -123,7 +115,6 @@ useEffect(() => {
                         key={n.id}
                         onClick={async () => {
                           await markRead(n.id)
-                          setTimeout(() => router.push(getNotificationLink(n.type)), 100)
                         }}
                         className={`flex flex-col items-start gap-1 px-4 py-3 cursor-pointer hover:!bg-zinc-800 focus:!bg-zinc-800 ${!n.is_read ? 'bg-zinc-800/50' : ''}`}
                       >
@@ -144,7 +135,7 @@ useEffect(() => {
                   <>
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
-                      onClick={() => router.push('/dashboard/settings?tab=notifications')}
+                      onClick={() => onNavigate('settings')}
                       className="text-xs text-blue-400 text-center justify-center cursor-pointer hover:!bg-zinc-800"
                     >
                       View all notifications →
@@ -175,7 +166,7 @@ useEffect(() => {
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
               <DropdownMenuItem 
-                onClick={() => router.push('/dashboard/settings')} 
+                onClick={() => onNavigate('settings')} 
                 className="cursor-pointer hover:!bg-zinc-800 focus:!bg-zinc-800"
               >
                 <Settings className="mr-2 size-4" />
