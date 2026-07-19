@@ -23,7 +23,11 @@ export function GroupPill({ label, active, onClick, onManage }: GroupPillProps) 
         {label}
       </button>
       {onManage && active && (
-        <button onClick={onManage} className="text-white/50 hover:text-white transition-colors cursor-pointer">
+        <button
+          onClick={onManage}
+          aria-label={`Manage ${label}`}
+          className="p-2 text-white/50 hover:text-white transition-colors cursor-pointer"
+        >
           <Settings className="size-3" />
         </button>
       )}

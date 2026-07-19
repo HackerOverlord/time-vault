@@ -1,14 +1,13 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState, useRef } from "react"
 import { Plus, X, Clock, Image, Video, Type, Check } from "lucide-react"
 import { toast } from "sonner"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
-import { API, ah, jsonH } from "@/lib/api"
-import type { Group, GroupMember, Post } from "@/lib/types"
+import { apiFetch } from "@/lib/api"
+import type { Group, Post } from "@/lib/types"
 
 interface UploadModalProps {
   groups: Group[]
@@ -22,28 +21,26 @@ export function UploadModal({ groups, onClose, onPosted }: UploadModalProps) {
   const [mediaData, setMediaData] = useState<string | null>(null)
   const [caption, setCaption] = useState("")
   const [selectedGroupId, setSelectedGroupId] = useState(groups[0]?.id ?? "")
-  const [selectedMemberIds, setSelectedMemberIds] = useState<string[]>([])
-  const [groupMembers, setGroupMembers] = useState<GroupMember[]>([])
   const [unlockDate, setUnlockDate] = useState("")
   const [isTimeCapsule, setIsTimeCapsule] = useState(false)
   const [posting, setPosting] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => {
-    if (!selectedGroupId) return
-    fetch(`${API}/api/groups/${selectedGroupId}/members`, { headers: ah() })
-      .then(r => r.json())
-      .then(data => {
-        setGroupMembers(data)
-        setSelectedMemberIds(data.map((m: GroupMember) => m.user_id))
-      })
-  }, [selectedGroupId])
+  // Minimum unlock date is tomorrow (backend requires strictly > today)
+  const tomorrowISO = new Date(Date.now() + 86400000).toISOString().split("T")[0]
 
   const onFile = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
     if (!file.type.startsWith("video/") && !file.type.startsWith("image/")) {
       toast.error("Video or image files only")
+      return
+    }
+    // 5 MB limit matches the backend ceiling. base64 encoding adds ~33 %
+    // overhead, so a 5 MB file becomes ~6.7 MB — within the 7 MB server cap.
+    if (file.size > 5 * 1024 * 1024) {
+      toast.error("File is too large. Maximum size is 5 MB.")
+      e.target.value = ""
       return
     }
     setMediaType(file.type.startsWith("video/") ? "video" : "image")
@@ -54,25 +51,26 @@ export function UploadModal({ groups, onClose, onPosted }: UploadModalProps) {
   }
 
   const post = async () => {
-    if (!selectedGroupId) { toast.error("Select a group"); return }
+    if (!selectedGroupId) { toast.error("Select a vault"); return }
     if (mediaType !== "text" && !mediaData) { toast.error("Add media first"); return }
     if (mediaType === "text" && !caption.trim()) { toast.error("Write something"); return }
     setPosting(true)
     try {
-      const res = await fetch(`${API}/api/posts`, {
+      const result = await apiFetch<Post>(`/api/vaults/${selectedGroupId}/posts`, {
         method: "POST",
-        headers: jsonH(),
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          group_id: selectedGroupId,
           caption,
           media_type: mediaType,
           media_url: mediaType !== "text" ? mediaData : null,
-          recipient_ids: selectedMemberIds,
           unlock_at: isTimeCapsule && unlockDate ? unlockDate : null,
         }),
       })
-      if (res.ok) onPosted(await res.json())
-      else toast.error("Failed to post")
+      if (result.ok) {
+        onPosted(result.data)
+      } else {
+        toast.error(result.error ?? "Failed to post")
+      }
     } finally { setPosting(false) }
   }
 
@@ -145,9 +143,9 @@ export function UploadModal({ groups, onClose, onPosted }: UploadModalProps) {
               </div>
 
               <div className="space-y-1.5">
-                <Label className="text-zinc-400 text-xs uppercase tracking-widest font-bold">Group</Label>
+                <Label className="text-zinc-400 text-xs uppercase tracking-widest font-bold">Vault</Label>
                 {groups.length === 0 ? (
-                  <p className="text-zinc-500 text-sm">Create a group first.</p>
+                  <p className="text-zinc-500 text-sm">Create a vault first.</p>
                 ) : (
                   <select
                     value={selectedGroupId}
@@ -158,39 +156,6 @@ export function UploadModal({ groups, onClose, onPosted }: UploadModalProps) {
                   </select>
                 )}
               </div>
-
-              {groupMembers.length > 0 && (
-                <div className="space-y-2">
-                  <Label className="text-zinc-400 text-xs uppercase tracking-widest font-bold">Visible to</Label>
-                  <div className="flex flex-wrap gap-2">
-                    {groupMembers.map(m => (
-                      <button
-                        key={m.user_id}
-                        onClick={() =>
-                          setSelectedMemberIds(prev =>
-                            prev.includes(m.user_id)
-                              ? prev.filter(id => id !== m.user_id)
-                              : [...prev, m.user_id]
-                          )
-                        }
-                        className={cn(
-                          "flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-semibold border transition-all cursor-pointer",
-                          selectedMemberIds.includes(m.user_id)
-                            ? "bg-primary/20 border-primary/50 text-primary"
-                            : "bg-zinc-800 border-zinc-700 text-zinc-400 hover:border-zinc-500"
-                        )}
-                      >
-                        <Avatar className="size-4">
-                          <AvatarImage src={m.avatar} className="object-cover" />
-                          <AvatarFallback className="text-[8px] bg-zinc-600 text-white">{m.name[0]}</AvatarFallback>
-                        </Avatar>
-                        {m.name.split(" ")[0]}
-                        {selectedMemberIds.includes(m.user_id) && <Check className="size-3" />}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              )}
 
               {/* Time capsule toggle */}
               <button
@@ -225,7 +190,7 @@ export function UploadModal({ groups, onClose, onPosted }: UploadModalProps) {
                   <input
                     type="date"
                     value={unlockDate}
-                    min={new Date().toISOString().split("T")[0]}
+                    min={tomorrowISO}
                     onChange={e => setUnlockDate(e.target.value)}
                     className="w-full bg-zinc-800 border border-zinc-700 rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-primary/50 cursor-pointer"
                   />

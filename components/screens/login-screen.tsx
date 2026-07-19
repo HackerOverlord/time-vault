@@ -31,7 +31,8 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
         sessionStorage.setItem("token", d.token)
         onNavigate("feed")
       } else {
-        toast.error("Invalid credentials")
+        const d = await res.json().catch(() => ({}))
+        toast.error(d.error ?? "Invalid credentials")
       }
     } finally {
       setLoading(false)
@@ -52,6 +53,7 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
             <Input
               type="email"
               required
+              autoComplete="email"
               placeholder="you@example.com"
               className="bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl"
               value={form.email}
@@ -63,6 +65,7 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
             <Input
               type="password"
               required
+              autoComplete="current-password"
               placeholder="••••••••"
               className="bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl"
               value={form.password}

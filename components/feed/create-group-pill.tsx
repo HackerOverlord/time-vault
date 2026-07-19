@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Plus, X, Check } from "lucide-react"
 import { toast } from "sonner"
-import { API, jsonH } from "@/lib/api"
+import { apiFetch } from "@/lib/api"
 import type { Group } from "@/lib/types"
 
 interface CreateGroupPillProps {
@@ -16,21 +16,23 @@ export function CreateGroupPill({ onCreated }: CreateGroupPillProps) {
   const [loading, setLoading] = useState(false)
 
   const create = async () => {
-    if (!name.trim()) return
+    if (!name.trim()) {
+      toast.error("Vault name is required")
+      return
+    }
     setLoading(true)
-    const res = await fetch(`${API}/api/groups`, {
+    const result = await apiFetch<Group>("/api/vaults", {
       method: "POST",
-      headers: jsonH(),
-      body: JSON.stringify({ name }),
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name: name.trim() }),
     })
-    if (res.ok) {
-      const g = await res.json()
-      onCreated(g)
+    if (result.ok) {
+      onCreated(result.data)
       setName("")
       setOpen(false)
-      toast.success(`"${g.name}" created`)
+      toast.success(`"${result.data.name}" created`)
     } else {
-      toast.error("Failed to create group")
+      toast.error(result.error ?? "Failed to create vault")
     }
     setLoading(false)
   }
@@ -41,7 +43,7 @@ export function CreateGroupPill({ onCreated }: CreateGroupPillProps) {
         onClick={() => setOpen(true)}
         className="px-3 py-1.5 rounded-full text-xs font-semibold bg-white/10 text-white/70 hover:bg-white/20 hover:text-white whitespace-nowrap transition-all cursor-pointer flex items-center gap-1 shrink-0"
       >
-        <Plus className="size-3" /> New group
+        <Plus className="size-3" /> New vault
       </button>
     )
   }
@@ -53,10 +55,10 @@ export function CreateGroupPill({ onCreated }: CreateGroupPillProps) {
         value={name}
         onChange={e => setName(e.target.value)}
         onKeyDown={e => e.key === "Enter" && create()}
-        placeholder="Group name…"
+        placeholder="Vault name…"
         className="bg-transparent text-white text-xs outline-none w-28 placeholder:text-zinc-500"
       />
-      <button onClick={create} disabled={loading} className="text-primary hover:text-primary/80 cursor-pointer">
+      <button onClick={create} disabled={loading} className="text-primary hover:text-primary/80 cursor-pointer disabled:opacity-50">
         <Check className="size-3.5" />
       </button>
       <button onClick={() => setOpen(false)} className="text-zinc-500 hover:text-white cursor-pointer">

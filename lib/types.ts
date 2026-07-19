@@ -4,6 +4,7 @@ export interface Group {
   member_count: number
   created_by: string
   invite_code?: string
+  user_role: "owner" | "member"
 }
 
 export interface GroupMember {
@@ -15,27 +16,36 @@ export interface GroupMember {
   role: "admin" | "member"
 }
 
+// Canonical V1 member shape returned by GET /api/vaults/<id>/members
+export interface VaultMember {
+  user_id: string
+  name: string
+  avatar: string | null
+  role: "owner" | "member"
+  joined_at: string
+}
+
 export interface Post {
   id: string
   author_name: string
   author_avatar?: string
   author_id: string
-  group_id: string
-  group_name: string
+  vault_id: string
+  vault_name: string
   caption: string
   media_type: "video" | "image" | "text"
   media_url?: string
   unlock_at: string | null
-  is_locked: boolean
+  is_unlocked: boolean
   created_at: string
   like_count: number
   comment_count: number
   has_liked: boolean
-  recipient_ids: string[]
 }
 
 export interface Comment {
   id: string
+  author_id: string
   author_name: string
   author_avatar?: string
   body: string

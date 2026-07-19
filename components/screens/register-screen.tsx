@@ -35,7 +35,8 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
         sessionStorage.setItem("token", d.token)
         onNavigate("feed")
       } else {
-        toast.error("Registration failed")
+        const d = await res.json().catch(() => ({}))
+        toast.error(d.error ?? "Registration failed")
       }
     } finally {
       setLoading(false)
@@ -84,6 +85,7 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
             <Input
               type="password"
               required
+              autoComplete="new-password"
               placeholder="••••••••"
               className="bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl"
               value={form.password}

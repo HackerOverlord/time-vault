@@ -37,6 +37,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
   const [deleteOpen, setDeleteOpen] = useState(false)
   const [deletePwd, setDeletePwd] = useState("")
   const [deleteErr, setDeleteErr] = useState("")
+  const [deleting, setDeleting] = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
 
   useEffect(() => {
@@ -95,13 +96,17 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
   const saveProfile = async () => {
     setSaving(true)
     try {
-      await fetch(`${API}/api/me`, {
+      const res = await fetch(`${API}/api/me`, {
         method: "PUT",
         headers: jsonH(),
         body: JSON.stringify({ firstName, lastName, avatar }),
       })
-      setSaveMsg("Saved!")
-      setTimeout(() => setSaveMsg(""), 3000)
+      if (res.ok) {
+        setSaveMsg("Saved!")
+        setTimeout(() => setSaveMsg(""), 3000)
+      } else {
+        setSaveMsg("Save failed. Please try again.")
+      }
     } finally {
       setSaving(false)
     }
@@ -131,17 +136,22 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
   }
 
   const deleteAccount = async () => {
-    const res = await fetch(`${API}/api/delete-account`, {
-      method: "DELETE",
-      headers: jsonH(),
-      body: JSON.stringify({ password: deletePwd }),
-    })
-    if (res.ok) {
-      sessionStorage.removeItem("token")
-      onNavigate("login")
-    } else {
-      const d = await res.json()
-      setDeleteErr(d.error)
+    setDeleting(true)
+    try {
+      const res = await fetch(`${API}/api/delete-account`, {
+        method: "DELETE",
+        headers: jsonH(),
+        body: JSON.stringify({ password: deletePwd }),
+      })
+      if (res.ok) {
+        sessionStorage.removeItem("token")
+        onNavigate("login")
+      } else {
+        const d = await res.json().catch(() => ({}))
+        setDeleteErr(d.error ?? "Deletion failed. Please try again.")
+      }
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -331,7 +341,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
           <div className="bg-zinc-900 w-full max-w-md rounded-3xl border border-zinc-800 shadow-2xl p-8 space-y-5">
             <h3 className="text-white font-bold text-xl">Delete Account</h3>
             <p className="text-zinc-400 text-sm">
-              This permanently deletes your account, posts, and group memberships.
+              This permanently deletes your account, posts, and vault memberships.
             </p>
             <Input
               type="password"
@@ -350,10 +360,10 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
               </Button>
               <Button
                 onClick={deleteAccount}
-                disabled={!deletePwd}
+                disabled={!deletePwd || deleting}
                 className="flex-1 bg-red-600 hover:bg-red-700 text-white rounded-xl h-12 cursor-pointer disabled:opacity-50"
               >
-                Delete Forever
+                {deleting ? "Deleting…" : "Delete Forever"}
               </Button>
             </div>
           </div>

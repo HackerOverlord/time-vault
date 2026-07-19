@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect, useRef, useCallback } from "react"
+import { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { toast } from "sonner"
 import { Plus, Bell, Settings, LogOut, Video } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -11,11 +11,12 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Logo } from "@/components/logo"
 import { cn } from "@/lib/utils"
-import { API, ah } from "@/lib/api"
+import { API, ah, apiFetch } from "@/lib/api"
 import type { Screen } from "@/lib/navigation"
 import type { Post, Group } from "@/lib/types"
 import { GroupPill } from "@/components/feed/group-pill"
 import { CreateGroupPill } from "@/components/feed/create-group-pill"
+import { JoinVaultPill } from "@/components/feed/join-vault-pill"
 import { FeedPost } from "@/components/feed/feed-post"
 import { UploadModal } from "@/components/upload/upload-modal"
 
@@ -33,19 +34,40 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
   const [unreadCount, setUnreadCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [currentIndex, setCurrentIndex] = useState(0)
-  const postRefs = useRef<(HTMLDivElement | null)[]>([])
+  const postRefs   = useRef<(HTMLDivElement | null)[]>([])
+  const scrollRef   = useRef<HTMLDivElement | null>(null)
+  // Tracks in-flight like requests to prevent duplicate submissions on rapid taps.
+  const likingIds = useRef(new Set<string>())
 
   const fetchAll = useCallback(async () => {
+    setLoading(true)
+    setCurrentIndex(0)
+    scrollRef.current?.scrollTo({ top: 0 })
     const h = { headers: ah() }
-    const groupParam = activeGroupId === "all" ? "" : `?group_id=${activeGroupId}`
+    const groupParam = activeGroupId === "all" ? "" : `?vault_id=${activeGroupId}`
     const [postsRes, groupsRes, meRes, notifRes] = await Promise.all([
       fetch(`${API}/api/posts${groupParam}`, h),
-      fetch(`${API}/api/groups`, h),
+      fetch(`${API}/api/vaults`, h),
       fetch(`${API}/api/me`, h),
       fetch(`${API}/api/notifications`, h),
     ])
-    if (postsRes.ok) setPosts(await postsRes.json())
+    // If any core request returns 401 the token is expired or invalid.
+    // Clear the stored token and redirect to login immediately.
+    if ([postsRes, groupsRes, meRes].some(r => r.status === 401)) {
+      sessionStorage.removeItem("token")
+      onNavigate("login")
+      return
+    }
+    if (postsRes.ok) {
+      setPosts(await postsRes.json())
+      // Mark vault as seen when entering a vault-scoped feed.
+      // Fire-and-forget: failure is silent — only affects unread_count badge.
+      if (activeGroupId !== "all") {
+        apiFetch(`/api/vaults/${activeGroupId}/seen`, { method: "POST" })
+      }
+    }
     if (groupsRes.ok) setGroups(await groupsRes.json())
+    else toast.error("Could not load your vaults")
     if (meRes.ok) setCurrentUser(await meRes.json())
     if (notifRes.ok) {
       const nd = await notifRes.json()
@@ -75,26 +97,63 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
   }, [posts])
 
   const handleLike = async (postId: string) => {
+    if (likingIds.current.has(postId)) return
     const post = posts.find(p => p.id === postId)
     if (!post) return
-    await fetch(`${API}/api/posts/${postId}/like`, {
-      method: post.has_liked ? "DELETE" : "POST",
-      headers: ah(),
-    })
+    likingIds.current.add(postId)
+    const result = await apiFetch<{ like_count: number }>(
+      `/api/posts/${postId}/like`,
+      { method: post.has_liked ? "DELETE" : "POST" }
+    )
+    if (result.ok) {
+      setPosts(prev =>
+        prev.map(p =>
+          p.id === postId
+            ? { ...p, has_liked: !p.has_liked, like_count: result.data.like_count }
+            : p
+        )
+      )
+    } else {
+      toast.error(result.error ?? "Could not update like")
+    }
+    likingIds.current.delete(postId)
+  }
+
+  const handleDelete = async (postId: string) => {
+    const result = await apiFetch(`/api/posts/${postId}`, { method: "DELETE" })
+    if (result.ok) {
+      setPosts(prev => prev.filter(p => p.id !== postId))
+      toast.success("Post deleted")
+    } else {
+      toast.error(result.error ?? "Could not delete post")
+    }
+  }
+
+  const handleCommentCountChange = (postId: string, delta: number) => {
     setPosts(prev =>
       prev.map(p =>
         p.id === postId
-          ? { ...p, has_liked: !p.has_liked, like_count: p.has_liked ? p.like_count - 1 : p.like_count + 1 }
+          ? { ...p, comment_count: Math.max(0, p.comment_count + delta) }
           : p
       )
     )
   }
 
-  const handleDelete = async (postId: string) => {
-    await fetch(`${API}/api/posts/${postId}`, { method: "DELETE", headers: ah() })
-    setPosts(prev => prev.filter(p => p.id !== postId))
-    toast.success("Post deleted")
+  // Refresh vault list after joining, then switch to the new vault.
+  const handleJoined = async (vaultId: string, vaultName: string) => {
+    const result = await apiFetch<Group[]>("/api/vaults")
+    if (result.ok) {
+      setGroups(result.data)
+    }
+    setActiveGroupId(vaultId)
   }
+
+  // Set of vault IDs where the current user is owner.
+  // Derived from groups state so vault owners can delete any post in their vault.
+  const vaultOwnerIds = useMemo(
+    () => new Set(groups.filter(g => g.user_role === "owner").map(g => g.id)),
+    [groups]
+  )
 
   const logout = () => {
     sessionStorage.removeItem("token")
@@ -119,7 +178,7 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
           {/* Notification bell */}
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="relative p-2 text-white/70 hover:text-white transition-colors cursor-pointer">
+              <button aria-label="Notifications" className="relative p-3 text-white/70 hover:text-white transition-colors cursor-pointer">
                 <Bell className="size-5" />
                 {unreadCount > 0 && (
                   <span className="absolute top-1.5 right-1.5 size-2 rounded-full bg-primary" />
@@ -213,6 +272,7 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
             />
           ))}
           <CreateGroupPill onCreated={g => { setGroups(prev => [...prev, g]); setActiveGroupId(g.id) }} />
+          <JoinVaultPill onJoined={handleJoined} />
         </div>
       </div>
 
@@ -228,7 +288,11 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
           </div>
           <div>
             <p className="text-white font-semibold">Nothing here yet</p>
-            <p className="text-zinc-500 text-sm mt-1">Create a group and share your first memory.</p>
+            <p className="text-zinc-500 text-sm mt-1">
+              {activeGroupId === "all"
+                ? "Create a vault and share your first memory."
+                : "No posts in this vault yet. Be the first to share something."}
+            </p>
           </div>
           <Button
             onClick={() => setIsUploadOpen(true)}
@@ -239,6 +303,7 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
         </div>
       ) : (
         <div
+          ref={scrollRef}
           className="flex-1 overflow-y-scroll snap-y snap-mandatory"
           style={{ scrollSnapType: "y mandatory", scrollbarWidth: "none" }}
         >
@@ -253,8 +318,10 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
                 post={post}
                 isActive={i === currentIndex}
                 currentUserId={currentUser?.id}
+                isVaultOwner={vaultOwnerIds.has(post.vault_id)}
                 onLike={() => handleLike(post.id)}
                 onDelete={() => handleDelete(post.id)}
+                onCommentCountChange={(delta) => handleCommentCountChange(post.id, delta)}
               />
             </div>
           ))}
@@ -275,7 +342,10 @@ export function FeedScreen({ onNavigate }: FeedScreenProps) {
           groups={groups}
           onClose={() => setIsUploadOpen(false)}
           onPosted={post => {
-            setPosts(prev => [post, ...prev])
+            // Only insert into feed if it matches the active filter.
+            if (activeGroupId === "all" || post.vault_id === activeGroupId) {
+              setPosts(prev => [post, ...prev])
+            }
             setIsUploadOpen(false)
             toast.success("Posted!")
           }}

@@ -6,24 +6,34 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
-import { API, ah, jsonH } from "@/lib/api"
+import { apiFetch } from "@/lib/api"
+import { toast } from "sonner"
 import type { Post, Comment } from "@/lib/types"
 
 interface FeedPostProps {
   post: Post
   isActive: boolean
   currentUserId?: string
+  isVaultOwner: boolean
   onLike: () => void
   onDelete: () => void
+  onCommentCountChange: (delta: number) => void
 }
 
-export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: FeedPostProps) {
+export function FeedPost({
+  post, isActive, currentUserId, isVaultOwner,
+  onLike, onDelete, onCommentCountChange,
+}: FeedPostProps) {
   const [muted, setMuted] = useState(true)
   const [playing, setPlaying] = useState(true)
   const [showComments, setShowComments] = useState(false)
   const [comments, setComments] = useState<Comment[]>([])
   const [commentText, setCommentText] = useState("")
   const [commentsLoaded, setCommentsLoaded] = useState(false)
+  // Flicker-free loading: only show spinner after a brief delay
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [submitting, setSubmitting] = useState(false)
+  const loadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
   const videoRef = useRef<HTMLVideoElement>(null)
 
   useEffect(() => {
@@ -32,21 +42,58 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
     else videoRef.current.pause()
   }, [isActive, playing])
 
+  // Clean up the load-delay timer on unmount
+  useEffect(() => () => {
+    if (loadTimerRef.current) clearTimeout(loadTimerRef.current)
+  }, [])
+
   const loadComments = async () => {
     if (commentsLoaded) return
-    const res = await fetch(`${API}/api/posts/${post.id}/comments`, { headers: ah() })
-    if (res.ok) { setComments(await res.json()); setCommentsLoaded(true) }
+    // Show spinner only if the request takes more than 150 ms to avoid flicker
+    loadTimerRef.current = setTimeout(() => setCommentsLoading(true), 150)
+    const result = await apiFetch<Comment[]>(`/api/posts/${post.id}/comments`)
+    if (loadTimerRef.current) { clearTimeout(loadTimerRef.current); loadTimerRef.current = null }
+    setCommentsLoading(false)
+    if (result.ok) {
+      setComments(result.data)
+      setCommentsLoaded(true)
+    } else {
+      toast.error("Could not load comments")
+      // commentsLoaded stays false — user can retry by reopening drawer
+    }
   }
 
   const submitComment = async () => {
-    if (!commentText.trim()) return
-    const res = await fetch(`${API}/api/posts/${post.id}/comments`, {
-      method: "POST", headers: jsonH(), body: JSON.stringify({ body: commentText }),
+    if (!commentText.trim() || submitting) return
+    setSubmitting(true)
+    const result = await apiFetch<Comment>(`/api/posts/${post.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: commentText }),
     })
-    if (res.ok) { const comment = await res.json(); setComments(prev => [...prev, comment]); setCommentText("") }
+    if (result.ok) {
+      setComments(prev => [...prev, result.data])
+      setCommentText("")
+      onCommentCountChange(+1)
+    } else {
+      toast.error(result.error ?? "Could not post comment")
+    }
+    setSubmitting(false)
   }
 
-  if (post.is_locked) {
+  const deleteComment = async (commentId: string) => {
+    const result = await apiFetch(`/api/comments/${commentId}`, { method: "DELETE" })
+    if (result.ok) {
+      setComments(prev => prev.filter(c => c.id !== commentId))
+      onCommentCountChange(-1)
+    } else {
+      toast.error(result.error ?? "Could not delete comment")
+    }
+  }
+
+  const canDeletePost = post.author_id === currentUserId || isVaultOwner
+
+  if (!post.is_unlocked) {
     return (
       <div className="h-full w-full flex flex-col items-center justify-center bg-zinc-950 relative">
         <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/60" />
@@ -68,7 +115,7 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
             </p>
           </div>
           <p className="text-zinc-500 text-xs">
-            From {post.author_name} · {post.group_name}
+            From {post.author_name} · {post.vault_name}
           </p>
         </div>
       </div>
@@ -130,7 +177,7 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
           </Avatar>
           <div>
             <p className="text-white text-sm font-semibold">{post.author_name}</p>
-            <p className="text-white/50 text-xs">{post.group_name}</p>
+            <p className="text-white/50 text-xs">{post.vault_name}</p>
           </div>
         </div>
         {post.media_type !== "text" && post.caption && (
@@ -147,7 +194,12 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
 
       {/* Action bar */}
       <div className="absolute right-3 bottom-20 flex flex-col items-center gap-5">
-        <button onClick={onLike} className="flex flex-col items-center gap-1 cursor-pointer group">
+        <button
+          onClick={onLike}
+          aria-label={post.has_liked ? "Unlike" : "Like"}
+          aria-pressed={post.has_liked}
+          className="flex flex-col items-center gap-1 cursor-pointer group"
+        >
           <Heart
             className={cn(
               "size-6 text-white/80 group-hover:text-white transition-colors",
@@ -160,6 +212,8 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
         </button>
         <button
           onClick={() => { setShowComments(true); loadComments() }}
+          aria-label="Comments"
+          aria-expanded={showComments}
           className="flex flex-col items-center gap-1 cursor-pointer group"
         >
           <MessageCircle className="size-6 text-white/80 group-hover:text-white transition-colors" />
@@ -167,7 +221,7 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
             <span className="text-white/70 text-xs font-medium">{post.comment_count}</span>
           )}
         </button>
-        {post.author_id === currentUserId && (
+        {canDeletePost && (
           <button
             onClick={() => confirm("Delete this post?") && onDelete()}
             className="cursor-pointer group"
@@ -190,26 +244,41 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
             </button>
           </div>
           <div className="flex-1 overflow-y-auto px-5 py-3 space-y-4">
-            {comments.length === 0 ? (
+            {commentsLoading ? (
+              <div className="flex justify-center py-8">
+                <div className="size-5 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+              </div>
+            ) : comments.length === 0 ? (
               <p className="text-zinc-500 text-sm text-center py-8">No comments yet.</p>
             ) : (
-              comments.map(c => (
-                <div key={c.id} className="flex gap-3">
-                  <Avatar className="size-7 shrink-0">
-                    <AvatarImage src={c.author_avatar} className="object-cover" />
-                    <AvatarFallback className="bg-zinc-700 text-white text-xs">
-                      {c.author_name[0]}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <p className="text-white text-xs font-semibold">{c.author_name}</p>
-                    <p className="text-zinc-300 text-sm">{c.body}</p>
-                    <p className="text-zinc-600 text-[10px] mt-0.5">
-                      {new Date(c.created_at).toLocaleString()}
-                    </p>
+              comments.map(c => {
+                const canDeleteComment = c.author_id === currentUserId || isVaultOwner
+                return (
+                  <div key={c.id} className="flex gap-3">
+                    <Avatar className="size-7 shrink-0">
+                      <AvatarImage src={c.author_avatar} className="object-cover" />
+                      <AvatarFallback className="bg-zinc-700 text-white text-xs">
+                        {c.author_name[0]}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-white text-xs font-semibold">{c.author_name}</p>
+                      <p className="text-zinc-300 text-sm">{c.body}</p>
+                      <p className="text-zinc-600 text-[10px] mt-0.5">
+                        {new Date(c.created_at).toLocaleString()}
+                      </p>
+                    </div>
+                    {canDeleteComment && (
+                      <button
+                        onClick={() => deleteComment(c.id)}
+                        className="text-zinc-600 hover:text-red-400 transition-colors cursor-pointer p-1 shrink-0 self-start"
+                      >
+                        <X className="size-3.5" />
+                      </button>
+                    )}
                   </div>
-                </div>
-              ))
+                )
+              })
             )}
           </div>
           <div className="px-5 pb-6 pt-3 border-t border-zinc-800 flex gap-3">
@@ -222,8 +291,9 @@ export function FeedPost({ post, isActive, currentUserId, onLike, onDelete }: Fe
             />
             <Button
               onClick={submitComment}
+              disabled={submitting}
               size="sm"
-              className="bg-primary hover:bg-primary/90 rounded-xl h-10 px-4 cursor-pointer"
+              className="bg-primary hover:bg-primary/90 rounded-xl h-10 px-4 cursor-pointer disabled:opacity-50"
             >
               <Send className="size-4" />
             </Button>
