@@ -29,6 +29,8 @@ interface FeedPostProps {
   onLike: (postId: string) => void
   onDelete: (postId: string) => void
   onCommentCountChange: (postId: string, delta: number) => void
+  onArchive?: (postId: string, archive: boolean) => void
+  showArchived?: boolean
 }
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -37,6 +39,7 @@ function FeedPostInner({
   post, isActive, currentUserId, isVaultOwner,
   muted, onMuteChange, preload,
   onLike, onDelete, onCommentCountChange,
+  onArchive, showArchived = false,
 }: FeedPostProps) {
   // playing: user's intent (true = wants to play).
   // Separate from whether the <video> is actually playing, because autoplay
@@ -225,6 +228,7 @@ function FeedPostInner({
   }, [])
 
   const canDeletePost = post.author_id === currentUserId || isVaultOwner
+  const canArchive    = !!(onArchive && (post.author_id === currentUserId || isVaultOwner))
 
   const formattedDate = new Date(post.created_at).toLocaleDateString("en-US", {
     month: "short", day: "numeric", year: "numeric",
@@ -299,6 +303,7 @@ function FeedPostInner({
         </div>
         <ActionRail
           post={post} canDeletePost={canDeletePost} onLike={onLike}
+          canArchive={canArchive} showArchived={showArchived} onArchive={onArchive}
           onOpenComments={() => { setShowComments(true); loadComments() }}
           onDelete={onDelete}
           commentButtonRef={commentButtonRef}
@@ -334,7 +339,7 @@ function FeedPostInner({
           muted={muted}
           playsInline
           preload={preload}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-contain lg:object-cover"
           onClick={() => setPlaying(p => !p)}
           aria-label={`${post.author_name}'s video in ${post.vault_name}`}
         />
@@ -345,7 +350,7 @@ function FeedPostInner({
         <img
           src={post.media_url}
           alt={post.caption ?? `${post.author_name}'s photo in ${post.vault_name}`}
-          className="absolute inset-0 w-full h-full object-cover"
+          className="absolute inset-0 w-full h-full object-contain lg:object-cover"
           // Active post: eager + high fetch priority so it displays without waiting.
           // Inactive posts: lazy so the browser defers off-screen images.
           loading={isActive ? "eager" : "lazy"}
@@ -524,9 +529,14 @@ interface ActionRailProps {
   onOpenComments: () => void
   onDelete: (postId: string) => void
   commentButtonRef: React.RefObject<HTMLButtonElement | null>
+  // Pass 23
+  canArchive?: boolean
+  showArchived?: boolean
+  onArchive?: (postId: string, archive: boolean) => void
 }
 
-function ActionRail({ post, canDeletePost, onLike, onOpenComments, onDelete, commentButtonRef }: ActionRailProps) {
+function ActionRail({ post, canDeletePost, onLike, onOpenComments, onDelete, commentButtonRef,
+  canArchive = false, showArchived = false, onArchive }: ActionRailProps) {
   return (
     <div
       className="absolute right-3 flex flex-col items-center gap-6"
@@ -565,6 +575,19 @@ function ActionRail({ post, canDeletePost, onLike, onOpenComments, onDelete, com
           </span>
         )}
       </button>
+
+      {canArchive && onArchive && (
+        <button
+          onClick={() => onArchive(post.id, !showArchived)}
+          aria-label={showArchived ? "Restore post" : "Archive post"}
+          className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center"
+        >
+          <span className="text-white/35 group-hover:text-amber-400 transition-colors duration-150
+                           text-lg leading-none select-none">
+            {showArchived ? "↩" : "📦"}
+          </span>
+        </button>
+      )}
 
       {canDeletePost && (
         <button
