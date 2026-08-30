@@ -59,7 +59,7 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-8 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           showCreateForm
             ? "bg-white/20 text-white"
@@ -74,7 +74,7 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-8 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           showJoinForm
             ? "bg-white/20 text-white"
@@ -86,7 +86,7 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
 
       {/* ── Feed / Timeline segmented toggle ────────────────────────── */}
       <div
-        className="flex items-center rounded-full bg-white/[0.06] p-0.5 ml-1"
+        className="flex items-center rounded-full bg-white/[0.06] p-0.5 ml-1 w-fit"
         role="group"
         aria-label="View mode"
       >
@@ -1079,7 +1079,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
              style={{ background: "rgba(0,0,0,0.82)" }}>
 
           {/* Row 1: Brand + notification + user */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-2">
+          <div className="flex items-center justify-between px-4 pt-2 pb-1">
             <span className="text-white/60 text-xs font-bold tracking-widest uppercase">Time Vault</span>
             <div className="flex items-center gap-2">
               <NotificationBell
@@ -1115,24 +1115,25 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading + vault action buttons (triggers only) */}
-          <div className="px-4 pb-2">
-            <div className="flex items-start justify-between gap-3 flex-wrap">
-              <h1 className="text-white font-bold text-lg leading-tight">Your memories</h1>
-              <VaultActionButtons
-                showCreateForm={showCreateForm}
-                showJoinForm={showJoinForm}
-                onOpenCreate={openCreate}
-                onOpenJoin={openJoin}
-                disabled={isOffline}
-                viewMode={viewMode}
-                onSetViewMode={setViewMode}
-              />
-            </div>
+          {/* Row 2: Heading */}
+          <div className="px-4 pb-0.5">
+            <h1 className="text-white font-bold text-base leading-tight">Your memories</h1>
+          </div>
+          {/* Row 3: New/Join + Feed/Timeline */}
+          <div className="px-4 pb-1">
+            <VaultActionButtons
+              showCreateForm={showCreateForm}
+              showJoinForm={showJoinForm}
+              onOpenCreate={openCreate}
+              onOpenJoin={openJoin}
+              disabled={isOffline}
+              viewMode={viewMode}
+              onSetViewMode={setViewMode}
+            />
           </div>
 
-          {/* Row 3: Vault selector — selection only */}
-          <div className="pb-1">{VaultSelector}</div>
+          {/* Row 4: Vault selector — selection only */}
+          <div className="pb-0.5">{VaultSelector}</div>
 
         </div>
 
@@ -1173,7 +1174,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-1 py-1 border-b border-white/[0.04]"
+        <div className="shrink-0 space-y-0.5 py-0.5 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.70)" }}>
           <div className="px-4 lg:px-6">
             <div className="relative flex items-center">
@@ -1198,7 +1199,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-1.5 px-4 lg:px-6 overflow-x-auto pb-3 pt-3">
+               className="pill-strip flex gap-1.5 px-4 lg:px-6 overflow-x-auto pb-0.5">
             {([
               { value: "all",     label: "All" },
               { value: "image",   label: "Photos" },
