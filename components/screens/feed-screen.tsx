@@ -96,7 +96,7 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
           aria-label="Feed view"
           disabled={disabled}
           className={cn(
-            "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
+            "flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold",
             "transition-colors cursor-pointer select-none",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
             "disabled:opacity-40 disabled:cursor-not-allowed",
@@ -114,7 +114,7 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
           aria-label="Timeline view"
           disabled={disabled}
           className={cn(
-            "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold",
+            "flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold",
             "transition-colors cursor-pointer select-none",
             "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
             "disabled:opacity-40 disabled:cursor-not-allowed",
@@ -973,14 +973,14 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   // Selection-only: GroupPill items for "All" and each vault. No action buttons.
   const VaultSelector = (
     <div ref={pillStripRef} role="group" aria-label="Vault and view filter"
-         className="pill-strip flex gap-1.5 px-4 overflow-x-auto pb-1"
+         className="pill-strip flex gap-1 px-4 overflow-x-auto pb-0"
          style={{ scrollSnapType: "x proximity" }}>
       <button
         onClick={() => { setShowArchived(v => !v); setRawSearch(""); setDebouncedSearch("") }}
         aria-pressed={showArchived}
         aria-label={showArchived ? "Show active memories" : "Show archived memories"}
         className={cn(
-          "shrink-0 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer border",
+          "shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold transition-colors cursor-pointer border",
           showArchived
             ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
             : "bg-white/[0.06] text-white/40 hover:text-white/70 hover:bg-white/10 border-transparent"
@@ -1079,7 +1079,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
              style={{ background: "rgba(0,0,0,0.82)" }}>
 
           {/* Row 1: Brand + notification + user */}
-          <div className="flex items-center justify-between px-4 pt-2 pb-1">
+          <div className="flex items-center justify-between px-4 pt-1.5 pb-1">
             <span className="text-white/60 text-xs font-bold tracking-widest uppercase">Time Vault</span>
             <div className="flex items-center gap-2">
               <NotificationBell
@@ -1116,11 +1116,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading */}
-          <div className="px-4 pb-0.5">
-            <h1 className="text-white font-bold text-base leading-tight">Your memories</h1>
+          <div className="px-4 pb-1 mt-0.5">
+            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
           {/* Row 3: New/Join + Feed/Timeline */}
-          <div className="px-4 pb-1">
+          <div className="px-4 pb-1.5">
             <VaultActionButtons
               showCreateForm={showCreateForm}
               showJoinForm={showJoinForm}
@@ -1133,7 +1133,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 4: Vault selector — selection only */}
-          <div className="pb-0.5">{VaultSelector}</div>
+          <div className="pb-1">{VaultSelector}</div>
 
         </div>
 
@@ -1174,7 +1174,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-0.5 py-0.5 border-b border-white/[0.04]"
+        <div className="shrink-0 space-y-1 py-1.5 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.70)" }}>
           <div className="px-4 lg:px-6">
             <div className="relative flex items-center">
@@ -1186,9 +1186,9 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search memories…"
-                className="w-full h-9 bg-white/[0.08] border border-white/[0.10] rounded-full
-                           pl-8 pr-8 text-[13px] text-white/80 placeholder:text-white/30
-                           outline-none focus:border-white/25 transition-colors"
+                className="w-full h-8 bg-white/[0.08] border border-white/[0.10] rounded-full
+                           pl-8 pr-8 text-[16px] text-white/80 placeholder:text-white/30
+                           outline-none focus:border-white/25 transition-colors lg:text-[13px] lg:h-9"
               />
               {rawSearch && (
                 <button onClick={clearSearch} aria-label="Clear search"
@@ -1199,7 +1199,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-1.5 px-4 lg:px-6 overflow-x-auto pb-0.5">
+               className="pill-strip flex gap-1 px-4 lg:px-6 overflow-x-auto pb-0">
             {([
               { value: "all",     label: "All" },
               { value: "image",   label: "Photos" },
@@ -1212,7 +1212,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 onClick={() => setFeedFilter(value)}
                 aria-pressed={feedFilter === value}
                 className={cn(
-                  "px-3 min-h-8 inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap",
+                  "px-2.5 min-h-7 inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap lg:px-3 lg:min-h-8",
                   "transition-all duration-150 cursor-pointer shrink-0",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
                   feedFilter === value
@@ -1258,7 +1258,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           <button
             onClick={() => setIsUploadOpen(true)}
             disabled={isOffline}
-            className="lg:hidden absolute right-5 z-50 size-14 rounded-full bg-primary shadow-lg shadow-primary/25
+            className="lg:hidden absolute right-5 bottom-6 z-50 size-14 rounded-full bg-primary shadow-lg shadow-primary/25
                        flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
             style={{ bottom: "max(2rem, env(safe-area-inset-bottom))" }}
             aria-label={isOffline ? "Share a memory (unavailable offline)" : "Share a memory"}
