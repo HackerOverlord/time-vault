@@ -670,7 +670,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
     <div className="flex-1 overflow-hidden" aria-busy="true">
       <span className="sr-only" role="status">Loading memories</span>
       {[0, 1, 2].map(i => (
-        <div key={i} className="h-screen w-full bg-zinc-900 skeleton-pulse"
+        <div key={i} className="h-full w-full bg-zinc-900 skeleton-pulse"
              style={{ opacity: 1 - i * 0.25 }} />
       ))}
     </div>
@@ -935,7 +935,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               </button>
             </div>
           )}
-          <div ref={scrollRef} className="flex-1 overflow-y-scroll snap-y snap-mandatory"
+          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-scroll snap-y snap-mandatory"
                style={{ scrollSnapType: "y mandatory", scrollbarWidth: "none" }}>
           {hasActiveFilter && (
             <span className="sr-only" role="status" aria-live="polite">
@@ -944,7 +944,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           )}
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
-                 className="h-screen w-full flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                 className="h-full w-full flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
                 isActive={i === activeVisibleIndex}
