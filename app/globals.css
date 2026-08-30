@@ -204,3 +204,97 @@
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
+
+/* ── Time Vault feed utilities ───────────────────────────────────────────── */
+
+/* Radial scrim: pools shadow in corners and base, not a flat gradient band */
+.feed-scrim {
+  background: radial-gradient(
+    ellipse 120% 80% at 50% 120%,
+    rgba(0, 0, 0, 0.85) 0%,
+    rgba(0, 0, 0, 0.55) 35%,
+    transparent 65%
+  ),
+  linear-gradient(
+    to bottom,
+    rgba(0, 0, 0, 0.55) 0%,
+    transparent 25%,
+    transparent 55%,
+    rgba(0, 0, 0, 0.75) 80%,
+    rgba(0, 0, 0, 0.92) 100%
+  );
+}
+
+/* Text shadow so author names read over bright media without relying solely on the scrim */
+.text-scrim {
+  text-shadow: 0 1px 6px rgba(0, 0, 0, 0.8), 0 2px 16px rgba(0, 0, 0, 0.5);
+}
+
+/* iOS-safe bottom padding */
+.pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+.pb-safe-sm {
+  padding-bottom: max(0.75rem, env(safe-area-inset-bottom));
+}
+.mb-safe {
+  margin-bottom: max(2rem, env(safe-area-inset-bottom));
+}
+
+/* Vault entry fade — used by the vault-name ghost label */
+@keyframes vault-entry {
+  0%   { opacity: 0; transform: translateY(-6px); }
+  20%  { opacity: 1; transform: translateY(0); }
+  75%  { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-6px); }
+}
+.animate-vault-entry {
+  animation: vault-entry 1.8s ease-in-out forwards;
+}
+
+/* Like pulse — scale up and back on heart tap */
+@keyframes like-pulse {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.45); }
+  70%  { transform: scale(0.9); }
+  100% { transform: scale(1); }
+}
+.animate-like-pulse {
+  animation: like-pulse 0.28s cubic-bezier(0.36, 0.07, 0.19, 0.97) forwards;
+}
+
+/* Reduced-motion: kill all transitions and animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-vault-entry,
+  .animate-like-pulse,
+  .animate-spin,
+  .animate-waveform {
+    animation: none !important;
+  }
+  * {
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* ── Vault pill strip ────────────────────────────────────────────────────── */
+.pill-strip {
+  /* Hide scrollbar cross-browser */
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* IE/Edge */
+  /* Momentum scrolling on iOS */
+  -webkit-overflow-scrolling: touch;
+}
+.pill-strip::-webkit-scrollbar { display: none; }
+
+/* ── Skeleton shimmer ─────────────────────────────────────────────────────── */
+@keyframes skeleton-pulse {
+  0%, 100% { opacity: 0.55; }
+  50%       { opacity: 0.25; }
+}
+.skeleton-pulse {
+  animation: skeleton-pulse 1.6s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .skeleton-pulse { animation: none; opacity: 0.35; }
+}

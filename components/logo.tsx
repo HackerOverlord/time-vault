@@ -60,7 +60,7 @@ export const Logo = ({ scale = 1 }: { scale?: number }) => {
           <span className="text-3xl font-black tracking-tighter text-white uppercase italic">
             Time
           </span>
-          <span className="text-3xl font-extralight tracking-tighter italic ml-1.5 bg-gradient-to-b from-blue-400 via-blue-600 to-blue-900 bg-clip-text text-transparent">
+          <span className="text-3xl font-extralight tracking-tighter italic ml-1.5 pr-1 bg-gradient-to-b from-blue-400 via-blue-600 to-blue-900 bg-clip-text text-transparent">
             Vault
           </span>
         </div>

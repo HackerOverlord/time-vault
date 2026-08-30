@@ -49,8 +49,9 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
         </div>
         <form onSubmit={submit} className="space-y-4">
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-sm">Email</Label>
+            <Label htmlFor="login-email" className="text-zinc-400 text-sm">Email</Label>
             <Input
+              id="login-email"
               type="email"
               required
               autoComplete="email"
@@ -61,8 +62,9 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-sm">Password</Label>
+            <Label htmlFor="login-password" className="text-zinc-400 text-sm">Password</Label>
             <Input
+              id="login-password"
               type="password"
               required
               autoComplete="current-password"
@@ -84,7 +86,7 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
           No account?{" "}
           <button
             onClick={() => onNavigate("register")}
-            className="text-primary hover:underline cursor-pointer"
+            className="text-primary hover:underline cursor-pointer min-h-11 inline-flex items-center"
           >
             Create one
           </button>

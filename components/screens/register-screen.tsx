@@ -54,12 +54,13 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
         <form onSubmit={submit} className="space-y-4">
           <div className="grid grid-cols-2 gap-3">
             {([
-              ["First name", "firstName", "John"],
-              ["Last name",  "lastName",  "Doe"],
-            ] as const).map(([label, key, ph]) => (
+              ["First name", "firstName", "John", "reg-first-name"] as const,
+              ["Last name",  "lastName",  "Doe",  "reg-last-name"]  as const,
+            ]).map(([label, key, ph, id]) => (
               <div key={key} className="space-y-1.5">
-                <Label className="text-zinc-400 text-sm">{label}</Label>
+                <Label htmlFor={id} className="text-zinc-400 text-sm">{label}</Label>
                 <Input
+                  id={id}
                   required
                   placeholder={ph}
                   className="bg-zinc-900 border-zinc-800 text-white h-12 rounded-xl"
@@ -70,8 +71,9 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
             ))}
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-sm">Email</Label>
+            <Label htmlFor="reg-email" className="text-zinc-400 text-sm">Email</Label>
             <Input
+              id="reg-email"
               type="email"
               required
               placeholder="you@example.com"
@@ -81,8 +83,9 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label className="text-zinc-400 text-sm">Password</Label>
+            <Label htmlFor="reg-password" className="text-zinc-400 text-sm">Password</Label>
             <Input
+              id="reg-password"
               type="password"
               required
               autoComplete="new-password"
@@ -104,7 +107,7 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
           Already have an account?{" "}
           <button
             onClick={() => onNavigate("login")}
-            className="text-primary hover:underline cursor-pointer"
+            className="text-primary hover:underline cursor-pointer min-h-11 inline-flex items-center"
           >
             Sign in
           </button>
