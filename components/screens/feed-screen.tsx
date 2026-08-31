@@ -1157,9 +1157,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading (left) + New/Join (right) on same row */}
-          <div className="flex items-center justify-between gap-3 px-4 pt-1 pb-1.5">
-            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight shrink-0">Your memories</h1>
-            <div className="flex items-center gap-2 shrink-0">
+          {/* min-w-0 on heading allows it to shrink if viewport is narrow, */}
+          {/* keeping both buttons fully visible at 360px+. */}
+          <div className="flex items-center justify-between gap-2 px-4 pt-1 pb-1.5">
+            <h1 className="text-white font-bold text-xl leading-tight tracking-tight min-w-0 shrink truncate">Your memories</h1>
+            <div className="flex items-center gap-1.5 shrink-0">
               <NewJoinButtons
                 showCreateForm={showCreateForm}
                 showJoinForm={showJoinForm}

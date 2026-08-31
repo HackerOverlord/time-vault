@@ -280,8 +280,7 @@ function FeedPostInner({
           </p>
         </div>
         <div
-          className="absolute bottom-0 left-0 right-16 px-5 space-y-3"
-          style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+          className="absolute bottom-0 left-0 right-16 px-5 space-y-3 pb-20 lg:pb-6"
         >
           <div className="flex items-center gap-2.5">
             <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
@@ -429,9 +428,10 @@ function FeedPostInner({
       </div>
 
       {/* Author + caption overlay */}
+      {/* lg:pb-6 overrides the mobile bottom-nav clearance on desktop */}
       <div
-        className="absolute bottom-0 left-0 right-16 px-5 space-y-3"
-        style={{ paddingBottom: "max(1.5rem, env(safe-area-inset-bottom))" }}
+        className="absolute bottom-0 left-0 right-16 px-5 space-y-3 pb-20 lg:pb-6"
+        style={{ paddingBottom: undefined }}
       >
         <div className="flex items-center gap-2.5">
           <Avatar className="size-10 ring-1 ring-white/25 shrink-0 shadow-lg">
