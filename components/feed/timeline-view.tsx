@@ -191,7 +191,7 @@ export const TimelineView = React.memo(function TimelineView({
       )}
 
       {/* ── Scrollable content ──────────────────────────────────────────────── */}
-      <div className="overflow-y-auto flex-1 pb-24" style={{ scrollbarWidth: "thin" }}>
+      <div className="overflow-y-auto flex-1 pb-24 lg:pb-24" style={{ scrollbarWidth: "thin", paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}>
 
         {/* ── On This Day ─────────────────────────────────────────────────── */}
         {onThisDay.length > 0 && (
@@ -250,7 +250,7 @@ export const TimelineView = React.memo(function TimelineView({
                     </h3>
 
                     {/* Memory card grid: 2 cols mobile, 3–4 cols desktop */}
-                    <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       {mg.posts.map(post => (
                         <MemoryCard
                           key={post.id}

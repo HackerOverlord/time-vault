@@ -24,6 +24,8 @@ import { useCapsuleUnlockRefresh } from "@/lib/useCapsuleUnlockRefresh"
 import { filterPosts } from "@/lib/filterPosts"
 import type { FeedFilter } from "@/lib/filterPosts"
 import { UploadModal } from "@/components/upload/upload-modal"
+import { MobileBottomNav } from "@/components/feed/mobile-bottom-nav"
+import { Logo } from "@/components/logo"
 
 interface FeedScreenProps {
   onNavigate: (s: Screen, g?: Group) => void
@@ -33,37 +35,31 @@ interface FeedScreenProps {
 const CACHE_TTL = 60_000
 
 // ─── Vault action buttons ─────────────────────────────────────────────────────
-// Renders the "New vault" and "Join vault" trigger buttons only.
-// No forms are embedded here — forms are hoisted above the feed as a single
-// mounted instance, controlled by showCreateForm / showJoinForm in FeedScreen.
-interface VaultActionButtonsProps {
+// ── New/Join buttons only (used in mobile heading row) ─────────────────────
+interface NewJoinButtonsProps {
   showCreateForm: boolean
   showJoinForm: boolean
   onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
   onOpenJoin:   (e: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
-  viewMode: "feed" | "timeline" | null
-  onSetViewMode: (mode: "feed" | "timeline") => void
 }
-// Memoized: only re-renders when form visibility or disabled state changes.
-// Prevents re-renders caused by notification updates, search input, and post likes.
-const VaultActionButtons = React.memo(function VaultActionButtons({
+const NewJoinButtons = React.memo(function NewJoinButtons({
   showCreateForm, showJoinForm, onOpenCreate, onOpenJoin, disabled = false,
-  viewMode, onSetViewMode,
-}: VaultActionButtonsProps) {
+}: NewJoinButtonsProps) {
   return (
-    <div className="flex items-center gap-2 flex-wrap" role="group" aria-label="Vault actions">
+    <>
       <button
         onClick={onOpenCreate}
         disabled={disabled}
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-8 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
+          "border",
           showCreateForm
-            ? "bg-white/20 text-white"
-            : "bg-white/[0.08] text-white/70 hover:bg-white/[0.14] hover:text-white"
+            ? "bg-white/15 text-white border-white/20"
+            : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
         )}
       >
         <Plus className="size-3.5" aria-hidden /> New vault
@@ -74,59 +70,99 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-8 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
+          "border",
           showJoinForm
-            ? "bg-white/20 text-white"
-            : "bg-white/[0.08] text-white/70 hover:bg-white/[0.14] hover:text-white"
+            ? "bg-white/15 text-white border-white/20"
+            : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
         )}
       >
         <LogIn className="size-3.5" aria-hidden /> Join vault
       </button>
+    </>
+  )
+})
 
-      {/* ── Feed / Timeline segmented toggle ────────────────────────── */}
-      <div
-        className="flex items-center rounded-full bg-white/[0.06] p-0.5 ml-1 w-fit"
-        role="group"
-        aria-label="View mode"
+// ── Feed/Timeline toggle only (used below heading row on mobile) ─────────────
+interface FeedTimelineToggleProps {
+  viewMode: "feed" | "timeline" | null
+  onSetViewMode: (mode: "feed" | "timeline") => void
+  disabled?: boolean
+}
+const FeedTimelineToggle = React.memo(function FeedTimelineToggle({
+  viewMode, onSetViewMode, disabled = false,
+}: FeedTimelineToggleProps) {
+  return (
+    <div
+      className="flex items-center rounded-full bg-white/[0.08] p-0.5 w-fit"
+      role="group"
+      aria-label="View mode"
+    >
+      <button
+        onClick={() => onSetViewMode("feed")}
+        aria-pressed={viewMode === "feed"}
+        aria-label="Feed view"
+        disabled={disabled}
+        className={cn(
+          "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold",
+          "transition-colors cursor-pointer select-none",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
+          viewMode === "feed"
+            ? "bg-white/20 text-white shadow-sm"
+            : "text-white/50 hover:text-white/80"
+        )}
       >
-        <button
-          onClick={() => onSetViewMode("feed")}
-          aria-pressed={viewMode === "feed"}
-          aria-label="Feed view"
-          disabled={disabled}
-          className={cn(
-            "flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold",
-            "transition-colors cursor-pointer select-none",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            viewMode === "feed"
-              ? "bg-white/20 text-white shadow-sm"
-              : "text-white/50 hover:text-white/80"
-          )}
-        >
-          <LayoutList className="size-3" aria-hidden />
-          Feed
-        </button>
-        <button
-          onClick={() => onSetViewMode("timeline")}
-          aria-pressed={viewMode === "timeline"}
-          aria-label="Timeline view"
-          disabled={disabled}
-          className={cn(
-            "flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold",
-            "transition-colors cursor-pointer select-none",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
-            "disabled:opacity-40 disabled:cursor-not-allowed",
-            viewMode === "timeline"
-              ? "bg-white/20 text-white shadow-sm"
-              : "text-white/50 hover:text-white/80"
-          )}
-        >
-          <History className="size-3" aria-hidden />
-          Timeline
-        </button>
-      </div>
+        <LayoutList className="size-3.5" aria-hidden />
+        Feed
+      </button>
+      <button
+        onClick={() => onSetViewMode("timeline")}
+        aria-pressed={viewMode === "timeline"}
+        aria-label="Timeline view"
+        disabled={disabled}
+        className={cn(
+          "flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold",
+          "transition-colors cursor-pointer select-none",
+          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+          "disabled:opacity-40 disabled:cursor-not-allowed",
+          viewMode === "timeline"
+            ? "bg-white/20 text-white shadow-sm"
+            : "text-white/50 hover:text-white/80"
+        )}
+      >
+        <History className="size-3.5" aria-hidden />
+        Timeline
+      </button>
+    </div>
+  )
+})
+
+// ── Combined (used in desktop header) ────────────────────────────────────────
+interface VaultActionButtonsProps {
+  showCreateForm: boolean
+  showJoinForm: boolean
+  onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
+  onOpenJoin:   (e: React.MouseEvent<HTMLButtonElement>) => void
+  disabled?: boolean
+  viewMode: "feed" | "timeline" | null
+  onSetViewMode: (mode: "feed" | "timeline") => void
+}
+const VaultActionButtons = React.memo(function VaultActionButtons({
+  showCreateForm, showJoinForm, onOpenCreate, onOpenJoin, disabled = false,
+  viewMode, onSetViewMode,
+}: VaultActionButtonsProps) {
+  return (
+    <div className="flex items-center gap-2" role="group" aria-label="Vault actions">
+      <NewJoinButtons
+        showCreateForm={showCreateForm}
+        showJoinForm={showJoinForm}
+        onOpenCreate={onOpenCreate}
+        onOpenJoin={onOpenJoin}
+        disabled={disabled}
+      />
+      <FeedTimelineToggle viewMode={viewMode} onSetViewMode={onSetViewMode} disabled={disabled} />
     </div>
   )
 })
@@ -973,14 +1009,14 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   // Selection-only: GroupPill items for "All" and each vault. No action buttons.
   const VaultSelector = (
     <div ref={pillStripRef} role="group" aria-label="Vault and view filter"
-         className="pill-strip flex gap-1 px-4 overflow-x-auto pb-0"
+         className="pill-strip flex gap-2 px-4 overflow-x-auto pb-0 lg:gap-1"
          style={{ scrollSnapType: "x proximity" }}>
       <button
         onClick={() => { setShowArchived(v => !v); setRawSearch(""); setDebouncedSearch("") }}
         aria-pressed={showArchived}
         aria-label={showArchived ? "Show active memories" : "Show archived memories"}
         className={cn(
-          "shrink-0 h-7 px-2.5 rounded-full text-[11px] font-semibold transition-colors cursor-pointer border",
+          "shrink-0 h-9 px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer border lg:h-7 lg:px-2.5 lg:text-[11px]",
           showArchived
             ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
             : "bg-white/[0.06] text-white/40 hover:text-white/70 hover:bg-white/10 border-transparent"
@@ -1076,11 +1112,16 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             Search+filter renders once below both headers. No forms here.
         ═══════════════════════════════════════════════════════════════════ */}
         <div className="lg:hidden flex flex-col shrink-0"
-             style={{ background: "rgba(0,0,0,0.82)" }}>
+             style={{ background: "rgba(0,0,0,0.90)" }}>
 
-          {/* Row 1: Brand + notification + user */}
-          <div className="flex items-center justify-between px-4 pt-1.5 pb-1">
-            <span className="text-white/60 text-xs font-bold tracking-widest uppercase">Time Vault</span>
+          {/* Row 1: Logo + notification + user */}
+          {/* scale=0.60 shrinks the full Logo to ~h-9 effective height, */}
+          {/* preserving the exact icon + TIME Vault wordmark + LEGACY SECURED */}
+          {/* tagline — identical to the desktop sidebar, just smaller. */}
+          <div className="flex items-center justify-between px-4 pt-2 pb-0">
+            <div className="overflow-visible shrink-0" style={{ height: "3.2rem" }}>
+              <Logo scale={0.60} />
+            </div>
             <div className="flex items-center gap-2">
               <NotificationBell
                 triggerRef={mobileNotifBellRef}
@@ -1115,20 +1156,25 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading */}
-          <div className="px-4 pb-1 mt-0.5">
-            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
+          {/* Row 2: Heading (left) + New/Join (right) on same row */}
+          <div className="flex items-center justify-between gap-3 px-4 pt-1 pb-1.5">
+            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight shrink-0">Your memories</h1>
+            <div className="flex items-center gap-2 shrink-0">
+              <NewJoinButtons
+                showCreateForm={showCreateForm}
+                showJoinForm={showJoinForm}
+                onOpenCreate={openCreate}
+                onOpenJoin={openJoin}
+                disabled={isOffline}
+              />
+            </div>
           </div>
-          {/* Row 3: New/Join + Feed/Timeline */}
+          {/* Row 3: Feed/Timeline segmented control */}
           <div className="px-4 pb-1.5">
-            <VaultActionButtons
-              showCreateForm={showCreateForm}
-              showJoinForm={showJoinForm}
-              onOpenCreate={openCreate}
-              onOpenJoin={openJoin}
-              disabled={isOffline}
+            <FeedTimelineToggle
               viewMode={viewMode}
               onSetViewMode={setViewMode}
+              disabled={isOffline}
             />
           </div>
 
@@ -1174,21 +1220,21 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-1 py-1.5 border-b border-white/[0.04]"
-             style={{ background: "rgba(0,0,0,0.70)" }}>
+        <div className="shrink-0 space-y-2 py-2 border-b border-white/[0.04]"
+             style={{ background: "rgba(0,0,0,0.82)" }}>
           <div className="px-4 lg:px-6">
             <div className="relative flex items-center">
               <label htmlFor="feed-search" className="sr-only">Search memories</label>
-              <Search className="absolute left-3 size-3.5 text-white/30 pointer-events-none" aria-hidden />
+              <Search className="absolute left-3.5 size-4 text-white/40 pointer-events-none" aria-hidden />
               <input
                 id="feed-search"
                 type="search"
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search memories…"
-                className="w-full h-8 bg-white/[0.08] border border-white/[0.10] rounded-full
-                           pl-8 pr-8 text-[16px] text-white/80 placeholder:text-white/30
-                           outline-none focus:border-white/25 transition-colors lg:text-[13px] lg:h-9"
+                className="w-full h-10 bg-white/[0.07] border border-white/[0.12] rounded-2xl
+                           pl-9 pr-9 text-[16px] text-white/90 placeholder:text-white/35
+                           outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
               />
               {rawSearch && (
                 <button onClick={clearSearch} aria-label="Clear search"
@@ -1199,7 +1245,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-1 px-4 lg:px-6 overflow-x-auto pb-0">
+               className="pill-strip flex gap-2 px-4 lg:px-6 overflow-x-auto pb-0 lg:gap-1.5">
             {([
               { value: "all",     label: "All" },
               { value: "image",   label: "Photos" },
@@ -1212,7 +1258,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 onClick={() => setFeedFilter(value)}
                 aria-pressed={feedFilter === value}
                 className={cn(
-                  "px-2.5 min-h-7 inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap lg:px-3 lg:min-h-8",
+                  "px-4 min-h-9 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
                   "transition-all duration-150 cursor-pointer shrink-0",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
                   feedFilter === value
@@ -1254,19 +1300,19 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         <div className="flex-1 flex flex-col min-h-0 relative">
           {feedContent}
 
-          {/* Upload FAB — mobile / tablet only */}
-          <button
-            onClick={() => setIsUploadOpen(true)}
-            disabled={isOffline}
-            className="lg:hidden absolute right-5 bottom-6 z-50 size-14 rounded-full bg-primary shadow-lg shadow-primary/25
-                       flex items-center justify-center hover:bg-primary/90 transition-all active:scale-95 cursor-pointer disabled:opacity-50"
-            style={{ bottom: "max(2rem, env(safe-area-inset-bottom))" }}
-            aria-label={isOffline ? "Share a memory (unavailable offline)" : "Share a memory"}
-          >
-            <Plus className="size-6 text-white" aria-hidden />
-          </button>
         </div>
       </div>
+
+      {/* ── Mobile bottom navigation ──────────────────────────────────── */}
+      <MobileBottomNav
+        viewMode={viewMode}
+        onSelectFeed={() => { setViewMode("feed"); setActiveGroupId("all") }}
+        onSelectTimeline={() => { setViewMode("timeline"); setActiveGroupId("all") }}
+        onSelectVaults={() => setActiveGroupId("all")}
+        onOpenUpload={() => setIsUploadOpen(true)}
+        onOpenSettings={() => onNavigate("settings")}
+        disabled={isOffline}
+      />
 
       {/* Notification panel */}
       {showNotifPanel && (
