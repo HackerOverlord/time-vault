@@ -1118,8 +1118,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           {/* scale=0.60 shrinks the full Logo to ~h-9 effective height, */}
           {/* preserving the exact icon + TIME Vault wordmark + LEGACY SECURED */}
           {/* tagline — identical to the desktop sidebar, just smaller. */}
-          <div className="flex items-center justify-between px-4 pt-3 pb-1">
-            <div className="overflow-visible shrink-0" style={{ height: "3.2rem" }}>
+          <div className="flex items-center justify-between px-4 pt-1.5 pb-0.5">
+            <div className="overflow-visible shrink-0" style={{ height: "3.0rem" }}>
               <Logo scale={0.60} />
             </div>
             <div className="flex items-center gap-2">
@@ -1157,11 +1157,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading — full width, never truncated */}
-          <div className="px-4 pt-0 pb-1">
-            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight">Your memories</h1>
+          <div className="px-4 pt-0 pb-0.5">
+            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
           {/* Row 3: New vault + Join vault */}
-          <div className="flex items-center gap-2 px-4 pb-2">
+          <div className="flex items-center gap-2 px-4 pb-1.5">
             <NewJoinButtons
               showCreateForm={showCreateForm}
               showJoinForm={showJoinForm}
@@ -1209,7 +1209,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-2 py-2 border-b border-white/[0.04]"
+        <div className="shrink-0 space-y-1.5 py-1.5 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           <div className="px-4 lg:px-6">
             <div className="relative flex items-center">
@@ -1221,7 +1221,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search memories…"
-                className="w-full h-10 bg-white/[0.07] border border-white/[0.12] rounded-2xl
+                className="w-full h-10 bg-white/[0.07] border border-white/[0.12] rounded-xl
                            pl-9 pr-9 text-[16px] text-white/90 placeholder:text-white/35
                            outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
               />
@@ -1234,7 +1234,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-2 px-4 lg:px-6 overflow-x-auto pb-0 lg:gap-1.5">
+               className="pill-strip flex gap-1.5 px-4 lg:px-6 overflow-x-auto pb-0 lg:gap-1.5">
             {([
               { value: "all",     label: "All" },
               { value: "image",   label: "Photos" },
@@ -1247,7 +1247,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 onClick={() => setFeedFilter(value)}
                 aria-pressed={feedFilter === value}
                 className={cn(
-                  "px-4 min-h-9 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
+                  "px-3 min-h-10 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
                   "transition-all duration-150 cursor-pointer shrink-0",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
                   feedFilter === value
