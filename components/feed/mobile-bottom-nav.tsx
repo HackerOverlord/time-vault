@@ -39,13 +39,17 @@ export function MobileBottomNav({
     <nav
       aria-label="Mobile navigation"
       className={cn(
-        "lg:hidden fixed bottom-0 inset-x-0 z-40",
-        "flex items-end justify-around",
-        "pb-safe",  // env(safe-area-inset-bottom) via Tailwind plugin; falls back to 0
-        "h-16",
+        "lg:hidden shrink-0 w-full",
+        "flex items-center justify-around",
         "border-t border-white/[0.07]",
       )}
-      style={{ background: "oklch(0.10 0.02 260 / 0.96)", backdropFilter: "blur(20px)", WebkitBackdropFilter: "blur(20px)" }}
+      style={{
+        background: "oklch(0.10 0.02 260 / 0.96)",
+        backdropFilter: "blur(20px)",
+        WebkitBackdropFilter: "blur(20px)",
+        height: "calc(4rem + env(safe-area-inset-bottom, 0px))",
+        paddingBottom: "env(safe-area-inset-bottom, 0px)",
+      }}
     >
       {/* Vaults */}
       <button
@@ -79,7 +83,7 @@ export function MobileBottomNav({
       </button>
 
       {/* Upload — primary centered action */}
-      <div className="flex-1 flex items-center justify-center pb-1">
+      <div className="flex-1 flex items-center justify-center">
         <button
           onClick={onOpenUpload}
           disabled={disabled}

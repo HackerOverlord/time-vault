@@ -980,7 +980,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           )}
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
-                 className="h-full w-full flex-shrink-0" style={{ scrollSnapAlign: "start" }}>
+                 className="h-full w-full flex-shrink-0 px-3 py-2 lg:px-0 lg:py-0" style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
                 isActive={i === activeVisibleIndex}
@@ -1046,7 +1046,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   const retryingGroups   = groupsStatus === "loading"
 
   return (
-    <div className="h-screen w-full bg-black overflow-hidden flex">
+    <div className="h-[100dvh] w-full bg-black overflow-hidden flex">
 
       {/* Desktop sidebar (lg+) */}
       <DesktopSidebar
@@ -1062,7 +1062,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
       />
 
       {/* ── Main feed column ──────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 lg:pb-0">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
 
         {/* ── Offline banner ─────────────────────────────────────────────── */}
         {isOffline && (
@@ -1286,22 +1286,22 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         )}
 
         {/* ── Feed content area ─────────────────────────────────────────────── */}
-        <div className="flex-1 flex flex-col min-h-0 relative">
+        <div className="flex-1 flex flex-col min-h-0 relative overflow-hidden">
           {feedContent}
 
         </div>
-      </div>
 
-      {/* ── Mobile bottom navigation ──────────────────────────────────── */}
-      <MobileBottomNav
-        viewMode={viewMode}
-        onSelectFeed={() => { setViewMode("feed"); setActiveGroupId("all") }}
-        onSelectTimeline={() => { setViewMode("timeline"); setActiveGroupId("all") }}
-        onSelectVaults={() => setActiveGroupId("all")}
-        onOpenUpload={() => setIsUploadOpen(true)}
-        onOpenSettings={() => onNavigate("settings")}
-        disabled={isOffline}
-      />
+        {/* ── Mobile bottom navigation — shrink-0 flex sibling, NOT fixed ── */}
+        <MobileBottomNav
+          viewMode={viewMode}
+          onSelectFeed={() => { setViewMode("feed"); setActiveGroupId("all") }}
+          onSelectTimeline={() => { setViewMode("timeline"); setActiveGroupId("all") }}
+          onSelectVaults={() => setActiveGroupId("all")}
+          onOpenUpload={() => setIsUploadOpen(true)}
+          onOpenSettings={() => onNavigate("settings")}
+          disabled={isOffline}
+        />
+      </div>
 
       {/* Notification panel */}
       {showNotifPanel && (
