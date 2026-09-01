@@ -1169,8 +1169,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               />
             </div>
           </div>
-          {/* Feed/Timeline toggle and vault chips removed from mobile */}
-          {/* These are now handled via the bottom navigation */}
+          {/* Row 3: Vault chips — horizontal scroll strip */}
+          <div className="pb-1.5">{VaultSelector}</div>
 
         </div>
 
