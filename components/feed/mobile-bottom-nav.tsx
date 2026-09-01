@@ -17,7 +17,7 @@ import { Folder, LayoutList, Plus, History, Settings } from "lucide-react"
  */
 
 interface MobileBottomNavProps {
-  viewMode: "feed" | "timeline" | null
+  viewMode: "feed" | "timeline" | "vaults" | null
   onSelectFeed:     () => void
   onSelectTimeline: () => void
   onSelectVaults:   () => void
@@ -59,7 +59,7 @@ export function MobileBottomNav({
         className={cn(
           "flex flex-col items-center gap-0.5 flex-1 py-2 min-h-11 justify-center",
           "transition-colors cursor-pointer disabled:opacity-40",
-          "text-white/40 hover:text-white/80",
+          viewMode === "vaults" ? "text-primary" : "text-white/40 hover:text-white/80",
         )}
       >
         <Folder className="size-5" aria-hidden />

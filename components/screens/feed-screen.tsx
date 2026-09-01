@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { toast } from "sonner"
-import { Plus, Settings, LogOut, Image, Search, X as XIcon, Vault, LogIn, RefreshCw, WifiOff, AlertTriangle, LayoutList, Rows3, History } from "lucide-react"
+import { Plus, Settings, LogOut, Image, Search, X as XIcon, Vault, LogIn, RefreshCw, WifiOff, AlertTriangle, LayoutList, Rows3, History, ChevronRight } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -54,7 +54,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1 px-2 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showCreateForm
@@ -70,7 +70,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1 px-2 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showJoinForm
@@ -86,7 +86,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
 
 // ── Feed/Timeline toggle only (used below heading row on mobile) ─────────────
 interface FeedTimelineToggleProps {
-  viewMode: "feed" | "timeline" | null
+  viewMode: "feed" | "timeline" | "vaults" | null
   onSetViewMode: (mode: "feed" | "timeline") => void
   disabled?: boolean
 }
@@ -146,7 +146,7 @@ interface VaultActionButtonsProps {
   onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
   onOpenJoin:   (e: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
-  viewMode: "feed" | "timeline" | null
+  viewMode: "feed" | "timeline" | "vaults" | null
   onSetViewMode: (mode: "feed" | "timeline") => void
 }
 const VaultActionButtons = React.memo(function VaultActionButtons({
@@ -251,8 +251,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   // value, defaults to "feed" for missing/invalid/unavailable storage.
   // While null the UI renders the SkeletonFeed placeholder, so the user
   // never sees Feed content flash before Timeline content appears.
-  const [viewMode, setViewModeRaw] = useState<"feed" | "timeline" | null>(null)
-  const setViewMode = useCallback((mode: "feed" | "timeline") => {
+  const [viewMode, setViewModeRaw] = useState<"feed" | "timeline" | "vaults" | null>(null)
+  const setViewMode = useCallback((mode: "feed" | "timeline" | "vaults") => {
     setViewModeRaw(mode)
     try { localStorage.setItem("tv-view-mode", mode) } catch { /* private browsing */ }
   }, [])
@@ -939,6 +939,35 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
     <>
       {loading || viewMode === null ? SkeletonFeed
       : initialLoadError ? FeedErrorState
+      : viewMode === "vaults" ? (
+        /* Mobile Vaults view — vault list using existing groups data */
+        <div className="flex-1 overflow-y-auto px-4 py-4 space-y-2 pb-4">
+          <h2 className="text-white/50 text-xs font-semibold uppercase tracking-wider pb-1">Your vaults</h2>
+          {groups.length === 0 && (
+            <p className="text-white/30 text-sm pt-4 text-center">No vaults yet. Create or join one above.</p>
+          )}
+          {groups.map(g => (
+            <button
+              key={g.id}
+              onClick={() => { setActiveGroupId(g.id); setViewMode("feed") }}
+              className="w-full flex items-center gap-3 px-4 py-3 rounded-2xl bg-white/[0.05] hover:bg-white/[0.09]
+                         transition-colors cursor-pointer text-left"
+            >
+              <div className="size-10 rounded-full shrink-0 flex items-center justify-center text-sm font-bold"
+                   style={{ background: g.accent_color
+                     ? `oklch(0.55 0.20 ${g.accent_color === "blue" ? "240" : g.accent_color === "green" ? "150" : g.accent_color === "purple" ? "290" : g.accent_color === "orange" ? "55" : g.accent_color === "rose" ? "10" : "240"} / 0.30)`
+                     : "rgba(255,255,255,0.08)" }}>
+                {g.name[0]?.toUpperCase()}
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-white text-[15px] font-semibold leading-tight truncate">{g.name}</p>
+                <p className="text-white/40 text-[12px] mt-0.5">{g.member_count} {g.member_count === 1 ? "member" : "members"}</p>
+              </div>
+              <ChevronRight className="size-4 text-white/25 shrink-0" />
+            </button>
+          ))}
+        </div>
+      )
       : viewMode === "timeline" ? (
         <TimelineView
           posts={visiblePosts}
@@ -1158,8 +1187,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
 
           {/* Row 2: Heading + actions — same row, heading left, buttons right */}
           {/* flex-wrap means on very narrow screens buttons drop below */}
-          <div className="flex items-center justify-between gap-x-3 gap-y-0.5 px-4 pt-0 pb-1 flex-wrap">
-            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
+          <div className="flex items-center justify-between gap-x-2 px-4 pt-0 pb-1">
+            <h1 className="text-white font-bold text-lg leading-tight tracking-tight min-w-0 shrink">Your memories</h1>
             <div className="flex items-center gap-2 shrink-0">
               <NewJoinButtons
                 showCreateForm={showCreateForm}
@@ -1296,7 +1325,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           viewMode={viewMode}
           onSelectFeed={() => { setViewMode("feed"); setActiveGroupId("all") }}
           onSelectTimeline={() => { setViewMode("timeline"); setActiveGroupId("all") }}
-          onSelectVaults={() => setActiveGroupId("all")}
+          onSelectVaults={() => setViewMode("vaults")}
           onOpenUpload={() => setIsUploadOpen(true)}
           onOpenSettings={() => onNavigate("settings")}
           disabled={isOffline}
