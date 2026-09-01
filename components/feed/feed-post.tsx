@@ -425,14 +425,14 @@ function FeedPostInner({
         </div>
 
         {/* Right-side actions — INSIDE the card, overlaying the media */}
-        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-5">
+        <div className="absolute right-3 bottom-3 flex flex-col items-center gap-4">
           {/* Mute — video only */}
           {post.media_type === "video" && (
             <button
               onClick={() => onMuteChange(!muted)}
               aria-label={muted ? "Unmute" : "Mute"}
               className="flex min-h-11 min-w-11 items-center justify-center rounded-full
-                         bg-black/30 text-white/80 hover:text-white transition-colors cursor-pointer"
+                         bg-black/25 text-white/90 hover:text-white transition-colors cursor-pointer"
             >
               {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
             </button>
@@ -443,7 +443,8 @@ function FeedPostInner({
             onClick={() => onLike(post.id)}
             aria-label={post.has_liked ? "Unlike" : "Like"}
             aria-pressed={post.has_liked}
-            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center"
+            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
+                       rounded-full bg-black/25 py-1.5 px-1.5"
           >
             <Heart className={cn("size-7 transition-colors duration-150 drop-shadow",
               post.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
@@ -460,7 +461,8 @@ function FeedPostInner({
             onClick={() => { setShowComments(true); loadComments() }}
             aria-label="Comments"
             aria-haspopup="dialog"
-            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center"
+            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
+                       rounded-full bg-black/25 py-1.5 px-1.5"
           >
             <MessageCircle className="size-7 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
             {(post.comment_count ?? 0) > 0 && (
@@ -475,7 +477,8 @@ function FeedPostInner({
             <button
               onClick={() => confirm("Delete this post?") && onDelete(post.id)}
               aria-label="Delete post"
-              className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group"
+              className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
+                         rounded-full bg-black/25 p-1.5"
             >
               <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
             </button>
@@ -484,7 +487,7 @@ function FeedPostInner({
       </div>
 
       {/* ── MetadataFooter ──────────────────────────────────────────────── */}
-      <div className="shrink-0 px-4 pt-3 pb-2 space-y-1.5"
+      <div className="shrink-0 px-4 pt-2 pb-2 space-y-1"
            style={{ background: "rgba(0,0,0,0.97)" }}>
         <div className="flex items-center gap-2.5">
           <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
@@ -522,7 +525,7 @@ function FeedPostInner({
 
       {/* ── PlaybackControls (video only, shrink-0) ──────────────────────── */}
       {post.media_type === "video" && (
-        <div className="shrink-0 flex items-center gap-3 px-4 pt-1 pb-3"
+        <div className="shrink-0 flex items-center gap-3 px-4 pt-1 pb-2"
              style={{ background: "rgba(0,0,0,0.97)" }}>
           <button
             onClick={() => setPlaying(p => !p)}
