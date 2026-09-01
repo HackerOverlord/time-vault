@@ -325,183 +325,240 @@ function FeedPostInner({
 
   // ═══════════════════════════════════════════════════════════════════════════
   // MEDIA POST (image / video)
-  // Structural layout: flex-col card so metadata footer gets real space.
-  //   <card flex-col>
-  //     <media-area flex-1 min-h-0>  ← media fills remaining height
-  //     <footer shrink-0>            ← metadata always visible
-  // ActionRail overlays the media area (right side).
+  //
+  // Required DOM structure (spec):
+  //   FeedPostCard (flex-col, h-full, rounded on mobile)
+  //     MediaRegion (flex-1, min-h-0, relative)
+  //       media (video/img, object-contain mobile / object-cover lg)
+  //       scrim overlay
+  //       mute button        ← INSIDE card, top-right of media
+  //       like button        ← INSIDE card, right side of media
+  //       comment button     ← INSIDE card, right side of media
+  //       delete button      ← INSIDE card, right side of media
+  //       play/pause center  ← INSIDE card, centre of media
+  //       buffering spinner  ← INSIDE card, centre of media
+  //     MetadataFooter (shrink-0)
+  //       avatar, author, vault, date, caption
+  //     PlaybackControls (shrink-0, video only)
+  //       play/pause, scrubber, timestamp, fullscreen-toggle
+  //
+  // Media shrinks via flex-1 min-h-0 — footer and playback always get their
+  // natural height first; media takes what remains.
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="h-full w-full flex flex-col bg-black overflow-hidden">
+    <div className="h-full w-full flex flex-col overflow-hidden lg:rounded-none rounded-2xl"
+         style={{ background: "#000" }}>
 
-      {/* Media area — flex-1 so it fills space not taken by footer */}
+      {/* ── MediaRegion ─────────────────────────────────────────────────── */}
       <div className="flex-1 min-h-0 relative overflow-hidden">
 
-      {/* Video */}
-      {post.media_type === "video" && post.media_url && (
-        <video
-          ref={videoRef}
-          src={post.media_url}
-          loop
-          muted={muted}
-          playsInline
-          preload={preload}
-          className="absolute inset-0 w-full h-full object-contain lg:object-cover"
-          onClick={() => setPlaying(p => !p)}
-          aria-label={`${post.author_name}'s video in ${post.vault_name}`}
-        />
-      )}
-
-      {/* Image */}
-      {post.media_type === "image" && post.media_url && (
-        <img
-          src={post.media_url}
-          alt={post.caption ?? `${post.author_name}'s photo in ${post.vault_name}`}
-          className="absolute inset-0 w-full h-full object-contain lg:object-cover"
-          loading={isActive ? "eager" : "lazy"}
-          decoding="async"
-          fetchPriority={isActive ? "high" : "low"}
-        />
-      )}
-
-      {/* Cinematic scrim — only on media area */}
-      <div className="feed-scrim absolute inset-0 pointer-events-none" />
-
-      {/* Video progress bar — only for active video posts */}
-      {post.media_type === "video" && isActive && (
-        <div className="absolute bottom-0 left-0 right-0 h-[2px] bg-white/10 pointer-events-none z-10">
-          <div
-            className="h-full bg-white/50 transition-none"
-            style={{ width: `${progress * 100}%` }}
-          />
-        </div>
-      )}
-
-      {/* Video controls */}
-      {post.media_type === "video" && (
-        <>
-          {/* Tap-to-play/pause — visible on hover/focus; always reachable */}
-          <button
+        {/* Video */}
+        {post.media_type === "video" && post.media_url && (
+          <video
+            ref={videoRef}
+            src={post.media_url}
+            loop
+            muted={muted}
+            playsInline
+            preload={preload}
+            className="absolute inset-0 w-full h-full object-contain lg:object-cover"
             onClick={() => setPlaying(p => !p)}
-            aria-label={playing ? "Pause" : "Play"}
-            className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-14 rounded-full bg-black/30
-                       flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
-          >
-            {playing
-              ? <Pause className="size-6 text-white" />
-              : <Play className="size-6 text-white ml-0.5" />}
-          </button>
+            aria-label={`${post.author_name}'s video in ${post.vault_name}`}
+          />
+        )}
 
-          {/* Reduced-motion: always show play button when autoplay is suppressed */}
-          {reducedMotion && !playing && (
+        {/* Image */}
+        {post.media_type === "image" && post.media_url && (
+          <img
+            src={post.media_url}
+            alt={post.caption ?? `${post.author_name}'s photo in ${post.vault_name}`}
+            className="absolute inset-0 w-full h-full object-contain lg:object-cover"
+            loading={isActive ? "eager" : "lazy"}
+            decoding="async"
+            fetchPriority={isActive ? "high" : "low"}
+          />
+        )}
+
+        {/* Cinematic scrim */}
+        <div className="feed-scrim absolute inset-0 pointer-events-none" />
+
+        {/* Centre tap-to-play/pause — desktop hover or reduced-motion */}
+        {post.media_type === "video" && (
+          <>
             <button
-              onClick={() => setPlaying(true)}
-              aria-label="Play"
-              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-14 rounded-full bg-black/40
-                         flex items-center justify-center cursor-pointer"
+              onClick={() => setPlaying(p => !p)}
+              aria-label={playing ? "Pause" : "Play"}
+              className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-14 rounded-full bg-black/30
+                         flex items-center justify-center opacity-0 hover:opacity-100 transition-opacity cursor-pointer"
             >
-              <Play className="size-6 text-white ml-0.5" />
+              {playing ? <Pause className="size-6 text-white" /> : <Play className="size-6 text-white ml-0.5" />}
+            </button>
+
+            {reducedMotion && !playing && (
+              <button
+                onClick={() => setPlaying(true)}
+                aria-label="Play"
+                className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 size-14 rounded-full bg-black/40
+                           flex items-center justify-center cursor-pointer"
+              >
+                <Play className="size-6 text-white ml-0.5" />
+              </button>
+            )}
+
+            {isActive && buffering && (
+              <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
+                <Loader2 className="size-8 text-white/40 animate-spin" />
+              </div>
+            )}
+          </>
+        )}
+
+        {/* Vault ghost label */}
+        <div
+          key={ghostKey}
+          className="absolute top-[4.5rem] inset-x-0 flex justify-center pointer-events-none animate-vault-entry"
+          aria-hidden
+        >
+          <span className="text-white/25 text-[10px] font-semibold uppercase tracking-[0.25em] text-scrim">
+            {post.vault_name}
+          </span>
+        </div>
+
+        {/* Right-side actions — INSIDE the card, overlaying the media */}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 flex flex-col items-center gap-5">
+          {/* Mute — video only */}
+          {post.media_type === "video" && (
+            <button
+              onClick={() => onMuteChange(!muted)}
+              aria-label={muted ? "Unmute" : "Mute"}
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-full
+                         bg-black/30 text-white/80 hover:text-white transition-colors cursor-pointer"
+            >
+              {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
             </button>
           )}
 
-          {/* Buffering indicator — subtle, only on active post */}
-          {isActive && buffering && (
-            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 pointer-events-none">
-              <Loader2 className="size-8 text-white/40 animate-spin" />
-            </div>
-          )}
-
-          {/* Mute button */}
+          {/* Like */}
           <button
-            onClick={() => onMuteChange(!muted)}
-            aria-label={muted ? "Unmute" : "Mute"}
-            className="absolute top-20 right-4 flex min-h-11 min-w-11 items-center justify-center rounded-full text-white/70 hover:text-white transition-colors cursor-pointer"
+            onClick={() => onLike(post.id)}
+            aria-label={post.has_liked ? "Unlike" : "Like"}
+            aria-pressed={post.has_liked}
+            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center"
           >
-            {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
+            <Heart className={cn("size-7 transition-colors duration-150 drop-shadow",
+              post.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
+            {(post.like_count ?? 0) > 0 && (
+              <span className="text-white/80 text-[11px] font-semibold tabular-nums drop-shadow">
+                {post.like_count ?? 0}
+              </span>
+            )}
           </button>
-        </>
-      )}
 
-      {/* Vault ghost label */}
-      <div
-        key={ghostKey}
-        className="absolute top-[4.5rem] inset-x-0 flex justify-center pointer-events-none animate-vault-entry"
-        aria-hidden
-      >
-        <span className="text-white/25 text-[10px] font-semibold uppercase tracking-[0.25em] text-scrim">
-          {post.vault_name}
-        </span>
-      </div>
+          {/* Comment */}
+          <button
+            ref={commentButtonRef as React.RefObject<HTMLButtonElement>}
+            onClick={() => { setShowComments(true); loadComments() }}
+            aria-label="Comments"
+            aria-haspopup="dialog"
+            className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center"
+          >
+            <MessageCircle className="size-7 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
+            {(post.comment_count ?? 0) > 0 && (
+              <span className="text-white/80 text-[11px] font-semibold tabular-nums drop-shadow">
+                {post.comment_count ?? 0}
+              </span>
+            )}
+          </button>
 
-      {/* Author + caption overlay */}
-      {/* ActionRail overlays the media area — right side */}
-      {/* ActionRail overlays the media area — positions relative to media div */}
-      <ActionRail
-        post={post} canDeletePost={canDeletePost} onLike={onLike}
-        onOpenComments={() => { setShowComments(true); loadComments() }}
-        onDelete={onDelete}
-        commentButtonRef={commentButtonRef}
-      />
-
-      {/* Close media area */}
-      </div>
-
-      {/* Footer — real document flow, shrink-0, always visible above nav */}
-      <div className="shrink-0 px-4 pt-3 pb-3 space-y-2 bg-black">
-        <div className="flex items-center gap-2.5">
-          <Avatar className="size-10 ring-1 ring-white/25 shrink-0 shadow-lg">
-            <AvatarImage src={post.author_avatar} className="object-cover" />
-            <AvatarFallback
-              className="text-sm font-bold"
-              style={{ background: "oklch(0.65 0.18 240 / 0.35)", color: "oklch(0.65 0.18 240)" }}
+          {/* Delete */}
+          {canDeletePost && (
+            <button
+              onClick={() => confirm("Delete this post?") && onDelete(post.id)}
+              aria-label="Delete post"
+              className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group"
             >
+              <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* ── MetadataFooter ──────────────────────────────────────────────── */}
+      <div className="shrink-0 px-4 pt-3 pb-2 space-y-1.5"
+           style={{ background: "rgba(0,0,0,0.97)" }}>
+        <div className="flex items-center gap-2.5">
+          <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
+            <AvatarImage src={post.author_avatar} className="object-cover" />
+            <AvatarFallback className="text-sm font-bold"
+              style={{ background: "oklch(0.65 0.18 240 / 0.35)", color: "oklch(0.65 0.18 240)" }}>
               {post.author_name[0]}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <p className="text-white text-[15px] font-semibold leading-tight text-scrim">
-              {post.author_name}
-            </p>
-            <span
-              className="inline-block mt-0.5 px-2 py-0.5 rounded-full text-[10px] font-medium text-white/50"
-              style={{ background: "rgba(255,255,255,0.07)" }}
-            >
-              {post.vault_name}
-            </span>
+          <div className="min-w-0">
+            <p className="text-white text-[14px] font-semibold leading-tight truncate">{post.author_name}</p>
+            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white/50"
+                    style={{ background: "rgba(255,255,255,0.07)" }}>
+                {post.vault_name}
+              </span>
+              <span className="text-white/30 text-[10px]">{formattedDate}</span>
+            </div>
           </div>
         </div>
-
         {post.caption && (
-          <div>
-            <p
-              className={cn(
-                "text-white/90 text-[13px] leading-[1.55] text-scrim",
-                !captionExpanded && "line-clamp-3"
-              )}
-            >
-              {post.caption}
-            </p>
-            {post.caption.length > 120 && (
+          <p className={cn("text-white/80 text-[13px] leading-snug", !captionExpanded && "line-clamp-2")}>
+            {post.caption}
+            {post.caption.length > 80 && (
               <button
                 onClick={() => setCaptionExpanded(e => !e)}
-                aria-expanded={captionExpanded}
-                aria-label={captionExpanded ? "Show less caption" : "Show full caption"}
-                className="mt-1 text-white/40 text-[11px] font-medium hover:text-white/70 transition-colors cursor-pointer flex items-center gap-0.5"
+                className="ml-1 text-white/40 text-[11px] font-medium hover:text-white/70 cursor-pointer"
               >
-                {captionExpanded ? "less" : "more"}
-                <ChevronDown
-                  className={cn(
-                    "size-3 transition-transform duration-200",
-                    captionExpanded && "rotate-180"
-                  )}
-                />
+                {captionExpanded ? " less" : " more"}
               </button>
             )}
-          </div>
+          </p>
         )}
-
-        <p className="text-white/30 text-[11px] text-scrim">{formattedDate}</p>
       </div>
+
+      {/* ── PlaybackControls (video only, shrink-0) ──────────────────────── */}
+      {post.media_type === "video" && (
+        <div className="shrink-0 flex items-center gap-3 px-4 pt-1 pb-3"
+             style={{ background: "rgba(0,0,0,0.97)" }}>
+          <button
+            onClick={() => setPlaying(p => !p)}
+            aria-label={playing ? "Pause" : "Play"}
+            className="flex items-center justify-center size-8 shrink-0 cursor-pointer"
+          >
+            {playing
+              ? <Pause className="size-5 text-white/80" />
+              : <Play className="size-5 text-white/80 ml-0.5" />}
+          </button>
+
+          {/* Scrubber */}
+          <div className="flex-1 relative h-1 bg-white/20 rounded-full cursor-pointer"
+               onClick={e => {
+                 const rect = e.currentTarget.getBoundingClientRect()
+                 const pct  = (e.clientX - rect.left) / rect.width
+                 if (videoRef.current) videoRef.current.currentTime = pct * (videoRef.current.duration || 0)
+               }}>
+            <div className="absolute inset-y-0 left-0 bg-white/70 rounded-full"
+                 style={{ width: `${progress * 100}%` }} />
+            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 rounded-full bg-white shadow"
+                 style={{ left: `${progress * 100}%` }} />
+          </div>
+
+          {/* Timestamp */}
+          {videoRef.current && (
+            <span className="text-white/40 text-[11px] tabular-nums shrink-0">
+              {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"0")}
+              :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"0")}
+              {" / "}
+              {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"0")}
+              :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"0")}
+            </span>
+          )}
+        </div>
+      )}
 
       {showComments && (
         <CommentSheet
