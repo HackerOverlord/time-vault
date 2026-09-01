@@ -3,7 +3,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import {
   Heart, MessageCircle, Trash2, Lock, Play, Pause,
-  Volume2, VolumeX, Send, X, ChevronDown, Loader2,
+  Volume2, VolumeX, Send, X, ChevronDown, Loader2, Maximize2,
 } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
@@ -346,11 +346,13 @@ function FeedPostInner({
   // natural height first; media takes what remains.
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="h-full w-full flex flex-col overflow-hidden lg:rounded-none rounded-2xl"
+    <div className="h-full w-full overflow-hidden lg:rounded-none rounded-2xl relative lg:flex lg:flex-col"
          style={{ background: "#000" }}>
 
-      {/* ── MediaRegion ─────────────────────────────────────────────────── */}
-      <div className="flex-1 min-h-0 relative overflow-hidden">
+      {/* ── MediaRegion — fills the entire card (flex-1 removed; card is now h-full) */}
+      {/* Metadata overlays over bottom gradient — reclaims footer height for media */}
+      {/* Mobile: absolute overlay fills card. Desktop: flex-1 min-h-0. */}
+      <div className="absolute inset-0 lg:static lg:flex-1 lg:min-h-0 lg:relative lg:overflow-hidden">
 
         {/* Video */}
         {post.media_type === "video" && post.media_url && (
@@ -379,10 +381,7 @@ function FeedPostInner({
           />
         )}
 
-        {/* Cinematic scrim */}
-        <div className="feed-scrim absolute inset-0 pointer-events-none" />
-
-        {/* Centre tap-to-play/pause — desktop hover or reduced-motion */}
+        {/* Centre tap-to-play/pause */}
         {post.media_type === "video" && (
           <>
             <button
@@ -416,7 +415,7 @@ function FeedPostInner({
         {/* Vault ghost label */}
         <div
           key={ghostKey}
-          className="absolute top-[4.5rem] inset-x-0 flex justify-center pointer-events-none animate-vault-entry"
+          className="absolute top-12 inset-x-0 flex justify-center pointer-events-none animate-vault-entry"
           aria-hidden
         >
           <span className="text-white/25 text-[10px] font-semibold uppercase tracking-[0.25em] text-scrim">
@@ -424,15 +423,15 @@ function FeedPostInner({
           </span>
         </div>
 
-        {/* Right-side actions — INSIDE the card, overlaying the media */}
-        <div className="absolute right-3 bottom-3 flex flex-col items-center gap-4">
+        {/* Right-side actions — top-right area */}
+        <div className="absolute right-3 top-14 flex flex-col items-center gap-4">
           {/* Mute — video only */}
           {post.media_type === "video" && (
             <button
               onClick={() => onMuteChange(!muted)}
               aria-label={muted ? "Unmute" : "Mute"}
               className="flex min-h-11 min-w-11 items-center justify-center rounded-full
-                         bg-black/25 text-white/90 hover:text-white transition-colors cursor-pointer"
+                         bg-black/30 text-white/90 hover:text-white transition-colors cursor-pointer"
             >
               {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
             </button>
@@ -444,12 +443,12 @@ function FeedPostInner({
             aria-label={post.has_liked ? "Unlike" : "Like"}
             aria-pressed={post.has_liked}
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/25 py-1.5 px-1.5"
+                       rounded-full bg-black/30 py-2 px-2"
           >
-            <Heart className={cn("size-7 transition-colors duration-150 drop-shadow",
+            <Heart className={cn("size-6 transition-colors duration-150 drop-shadow",
               post.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
             {(post.like_count ?? 0) > 0 && (
-              <span className="text-white/80 text-[11px] font-semibold tabular-nums drop-shadow">
+              <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
                 {post.like_count ?? 0}
               </span>
             )}
@@ -462,11 +461,11 @@ function FeedPostInner({
             aria-label="Comments"
             aria-haspopup="dialog"
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/25 py-1.5 px-1.5"
+                       rounded-full bg-black/30 py-2 px-2"
           >
-            <MessageCircle className="size-7 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
+            <MessageCircle className="size-6 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
             {(post.comment_count ?? 0) > 0 && (
-              <span className="text-white/80 text-[11px] font-semibold tabular-nums drop-shadow">
+              <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
                 {post.comment_count ?? 0}
               </span>
             )}
@@ -478,16 +477,119 @@ function FeedPostInner({
               onClick={() => confirm("Delete this post?") && onDelete(post.id)}
               aria-label="Delete post"
               className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
-                         rounded-full bg-black/25 p-1.5"
+                         rounded-full bg-black/30 p-2"
             >
               <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
             </button>
           )}
         </div>
+
+        {/* ── Bottom gradient overlay — MOBILE ONLY (lg:hidden) ── */}
+        <div
+          className="absolute bottom-0 left-0 right-0 lg:hidden"
+          style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 40%, transparent 100%)" }}
+        >
+          {/* Metadata */}
+          <div className="px-4 pt-8 pb-2 space-y-1">
+            <div className="flex items-center gap-2">
+              <Avatar className="size-8 ring-1 ring-white/20 shrink-0">
+                <AvatarImage src={post.author_avatar} className="object-cover" />
+                <AvatarFallback className="text-xs font-bold"
+                  style={{ background: "oklch(0.65 0.18 240 / 0.35)", color: "oklch(0.65 0.18 240)" }}>
+                  {post.author_name[0]}
+                </AvatarFallback>
+              </Avatar>
+              <div className="min-w-0">
+                <p className="text-white text-[13px] font-semibold leading-tight drop-shadow truncate">
+                  {post.author_name}
+                </p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  <span className="px-1.5 py-0.5 rounded-full text-[10px] font-medium text-white/60"
+                        style={{ background: "rgba(255,255,255,0.10)" }}>
+                    {post.vault_name}
+                  </span>
+                  <span className="text-white/40 text-[10px] drop-shadow">{formattedDate}</span>
+                </div>
+              </div>
+            </div>
+
+            {post.caption && (
+              <p className={cn("text-white/85 text-[13px] leading-snug drop-shadow", !captionExpanded && "line-clamp-2")}>
+                {post.caption}
+                {post.caption.length > 80 && (
+                  <button
+                    onClick={() => setCaptionExpanded(e => !e)}
+                    className="ml-1 text-white/50 text-[11px] font-medium hover:text-white/80 cursor-pointer"
+                  >
+                    {captionExpanded ? " less" : " more"}
+                  </button>
+                )}
+              </p>
+            )}
+          </div>
+
+          {/* Playback controls — video only */}
+          {post.media_type === "video" && (
+            <div className="flex items-center gap-3 px-4 pb-4 pt-1">
+              <button
+                onClick={() => setPlaying(p => !p)}
+                aria-label={playing ? "Pause" : "Play"}
+                className="flex items-center justify-center size-8 shrink-0 cursor-pointer"
+              >
+                {playing
+                  ? <Pause className="size-5 text-white/90 drop-shadow" />
+                  : <Play className="size-5 text-white/90 drop-shadow ml-0.5" />}
+              </button>
+
+              {/* Scrubber */}
+              <div className="flex-1 relative h-5 flex items-center cursor-pointer"
+                   onClick={e => {
+                     const rect = e.currentTarget.getBoundingClientRect()
+                     const pct  = (e.clientX - rect.left) / rect.width
+                     if (videoRef.current) videoRef.current.currentTime = pct * (videoRef.current.duration || 0)
+                   }}>
+                <div className="w-full h-[3px] bg-white/25 rounded-full relative">
+                  <div className="absolute inset-y-0 left-0 bg-white/80 rounded-full"
+                       style={{ width: `${progress * 100}%` }} />
+                  <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 rounded-full bg-white shadow-lg"
+                       style={{ left: `${progress * 100}%` }} />
+                </div>
+              </div>
+
+              {/* Timestamp */}
+              {videoRef.current && (
+                <span className="text-white/50 text-[10px] tabular-nums shrink-0 drop-shadow">
+                  {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"0")}
+                  :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"0")}
+                  {" / "}
+                  {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"0")}
+                  :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"0")}
+                </span>
+              )}
+
+              {/* Fullscreen */}
+              <button
+                onClick={() => {
+                  const el = videoRef.current
+                  if (!el) return
+                  if (document.fullscreenElement) {
+                    document.exitFullscreen().catch(() => {})
+                  } else {
+                    el.requestFullscreen?.().catch(() => {})
+                  }
+                }}
+                aria-label="Fullscreen"
+                className="flex items-center justify-center size-8 shrink-0 cursor-pointer"
+              >
+                <Maximize2 className="size-4 text-white/60 drop-shadow" />
+              </button>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* ── MetadataFooter ──────────────────────────────────────────────── */}
-      <div className="shrink-0 px-4 pt-2 pb-2 space-y-1"
+      {/* ── Desktop MetadataFooter (hidden on mobile, shown lg+) ───────── */}
+      <div className="hidden lg:block shrink-0 px-5 pt-3 pb-2 space-y-1.5"
            style={{ background: "rgba(0,0,0,0.97)" }}>
         <div className="flex items-center gap-2.5">
           <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
@@ -512,10 +614,8 @@ function FeedPostInner({
           <p className={cn("text-white/80 text-[13px] leading-snug", !captionExpanded && "line-clamp-2")}>
             {post.caption}
             {post.caption.length > 80 && (
-              <button
-                onClick={() => setCaptionExpanded(e => !e)}
-                className="ml-1 text-white/40 text-[11px] font-medium hover:text-white/70 cursor-pointer"
-              >
+              <button onClick={() => setCaptionExpanded(e => !e)}
+                className="ml-1 text-white/40 text-[11px] font-medium hover:text-white/70 cursor-pointer">
                 {captionExpanded ? " less" : " more"}
               </button>
             )}
@@ -523,41 +623,34 @@ function FeedPostInner({
         )}
       </div>
 
-      {/* ── PlaybackControls (video only, shrink-0) ──────────────────────── */}
+      {/* ── Desktop PlaybackControls (hidden on mobile, shown lg+) ──────── */}
       {post.media_type === "video" && (
-        <div className="shrink-0 flex items-center gap-3 px-4 pt-1 pb-2"
+        <div className="hidden lg:flex shrink-0 items-center gap-3 px-5 pt-1 pb-3"
              style={{ background: "rgba(0,0,0,0.97)" }}>
-          <button
-            onClick={() => setPlaying(p => !p)}
-            aria-label={playing ? "Pause" : "Play"}
-            className="flex items-center justify-center size-8 shrink-0 cursor-pointer"
-          >
-            {playing
-              ? <Pause className="size-5 text-white/80" />
-              : <Play className="size-5 text-white/80 ml-0.5" />}
+          <button onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : "Play"}
+                  className="flex items-center justify-center size-8 shrink-0 cursor-pointer">
+            {playing ? <Pause className="size-5 text-white/80" /> : <Play className="size-5 text-white/80 ml-0.5" />}
           </button>
-
-          {/* Scrubber */}
-          <div className="flex-1 relative h-1 bg-white/20 rounded-full cursor-pointer"
+          <div className="flex-1 relative h-5 flex items-center cursor-pointer"
                onClick={e => {
                  const rect = e.currentTarget.getBoundingClientRect()
-                 const pct  = (e.clientX - rect.left) / rect.width
+                 const pct = (e.clientX - rect.left) / rect.width
                  if (videoRef.current) videoRef.current.currentTime = pct * (videoRef.current.duration || 0)
                }}>
-            <div className="absolute inset-y-0 left-0 bg-white/70 rounded-full"
-                 style={{ width: `${progress * 100}%` }} />
-            <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 rounded-full bg-white shadow"
-                 style={{ left: `${progress * 100}%` }} />
+            <div className="w-full h-[3px] bg-white/25 rounded-full relative">
+              <div className="absolute inset-y-0 left-0 bg-white/70 rounded-full"
+                   style={{ width: `${progress * 100}%` }} />
+              <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 rounded-full bg-white shadow"
+                   style={{ left: `${progress * 100}%` }} />
+            </div>
           </div>
-
-          {/* Timestamp */}
           {videoRef.current && (
             <span className="text-white/40 text-[11px] tabular-nums shrink-0">
-              {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"0")}
-              :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"0")}
+              {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"00")}
+              :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"00")}
               {" / "}
-              {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"0")}
-              :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"0")}
+              {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"00")}
+              :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"00")}
             </span>
           )}
         </div>

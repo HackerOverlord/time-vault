@@ -1156,19 +1156,19 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading — full width, never truncated */}
-          <div className="px-4 pt-0 pb-0.5">
+          {/* Row 2: Heading + actions — same row, heading left, buttons right */}
+          {/* flex-wrap means on very narrow screens buttons drop below */}
+          <div className="flex items-center justify-between gap-x-3 gap-y-1 px-4 pt-0 pb-1.5 flex-wrap">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
-          </div>
-          {/* Row 3: New vault + Join vault */}
-          <div className="flex items-center gap-2 px-4 pb-1.5">
-            <NewJoinButtons
-              showCreateForm={showCreateForm}
-              showJoinForm={showJoinForm}
-              onOpenCreate={openCreate}
-              onOpenJoin={openJoin}
-              disabled={isOffline}
-            />
+            <div className="flex items-center gap-2 shrink-0">
+              <NewJoinButtons
+                showCreateForm={showCreateForm}
+                showJoinForm={showJoinForm}
+                onOpenCreate={openCreate}
+                onOpenJoin={openJoin}
+                disabled={isOffline}
+              />
+            </div>
           </div>
         </div>
 
