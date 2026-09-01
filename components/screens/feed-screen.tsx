@@ -980,7 +980,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           )}
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
-                 className="h-full w-full flex-shrink-0 px-3 py-2 lg:px-0 lg:py-0" style={{ scrollSnapAlign: "start" }}>
+                 className="h-full w-full flex-shrink-0 px-1.5 py-1.5 lg:px-0 lg:py-0" style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
                 isActive={i === activeVisibleIndex}
@@ -1158,7 +1158,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
 
           {/* Row 2: Heading + actions — same row, heading left, buttons right */}
           {/* flex-wrap means on very narrow screens buttons drop below */}
-          <div className="flex items-center justify-between gap-x-3 gap-y-1 px-4 pt-0 pb-1.5 flex-wrap">
+          <div className="flex items-center justify-between gap-x-3 gap-y-0.5 px-4 pt-0 pb-1 flex-wrap">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
             <div className="flex items-center gap-2 shrink-0">
               <NewJoinButtons

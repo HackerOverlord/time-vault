@@ -579,9 +579,9 @@ function FeedPostInner({
                   }
                 }}
                 aria-label="Fullscreen"
-                className="flex items-center justify-center size-8 shrink-0 cursor-pointer"
+                className="flex items-center justify-center size-9 shrink-0 cursor-pointer"
               >
-                <Maximize2 className="size-4 text-white/60 drop-shadow" />
+                <Maximize2 className="size-5 text-white/75 drop-shadow" />
               </button>
             </div>
           )}
