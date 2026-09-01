@@ -54,7 +54,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showCreateForm
@@ -70,7 +70,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showJoinForm
@@ -1009,14 +1009,14 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   // Selection-only: GroupPill items for "All" and each vault. No action buttons.
   const VaultSelector = (
     <div ref={pillStripRef} role="group" aria-label="Vault and view filter"
-         className="pill-strip flex gap-2 px-4 overflow-x-auto pb-0 lg:gap-1"
+         className="pill-strip flex gap-1.5 px-4 overflow-x-auto pb-0 lg:gap-1"
          style={{ scrollSnapType: "x proximity" }}>
       <button
         onClick={() => { setShowArchived(v => !v); setRawSearch(""); setDebouncedSearch("") }}
         aria-pressed={showArchived}
         aria-label={showArchived ? "Show active memories" : "Show archived memories"}
         className={cn(
-          "shrink-0 h-9 px-4 rounded-full text-sm font-semibold transition-colors cursor-pointer border lg:h-7 lg:px-2.5 lg:text-[11px]",
+          "shrink-0 h-8 px-3 rounded-full text-xs font-semibold transition-colors cursor-pointer border lg:h-7 lg:px-2.5 lg:text-[11px]",
           showArchived
             ? "bg-amber-500/20 text-amber-400 border-amber-500/30"
             : "bg-white/[0.06] text-white/40 hover:text-white/70 hover:bg-white/10 border-transparent"
@@ -1118,7 +1118,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           {/* scale=0.60 shrinks the full Logo to ~h-9 effective height, */}
           {/* preserving the exact icon + TIME Vault wordmark + LEGACY SECURED */}
           {/* tagline — identical to the desktop sidebar, just smaller. */}
-          <div className="flex items-center justify-between px-4 pt-2 pb-0">
+          <div className="flex items-center justify-between px-4 pt-3 pb-1">
             <div className="overflow-visible shrink-0" style={{ height: "3.2rem" }}>
               <Logo scale={0.60} />
             </div>
@@ -1157,8 +1157,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading + actions on same row, heading shrinks before buttons disappear */}
-          <div className="flex items-center justify-between gap-3 px-4 pt-1 pb-2">
-            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight min-w-0 shrink">Your memories</h1>
+          <div className="flex items-center justify-between gap-3 px-4 pt-0 pb-2">
+            <h1 className="text-white font-bold text-[1.35rem] leading-tight tracking-tight">Your memories</h1>
             <div className="flex items-center gap-2 shrink-0">
               <NewJoinButtons
                 showCreateForm={showCreateForm}

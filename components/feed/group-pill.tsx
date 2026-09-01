@@ -24,7 +24,7 @@ export function GroupPill({ label, active, onClick, onManage, group }: GroupPill
         onClick={onClick}
         aria-current={active ? "true" : undefined}
         className={cn(
-          "px-4 min-h-9 inline-flex items-center gap-1.5 rounded-full text-sm font-semibold whitespace-nowrap lg:px-2.5 lg:min-h-8 lg:text-[11px]",
+          "px-3 min-h-8 inline-flex items-center gap-1 rounded-full text-xs font-semibold whitespace-nowrap lg:px-2.5 lg:min-h-7 lg:text-[11px]",
           "transition-all duration-200 cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-1 focus-visible:ring-offset-transparent",
           active
