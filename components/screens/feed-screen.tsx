@@ -1062,7 +1062,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
       />
 
       {/* ── Main feed column ──────────────────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
+      <div className="flex-1 flex flex-col min-w-0 overflow-hidden pb-16 lg:pb-0">
 
         {/* ── Offline banner ─────────────────────────────────────────────── */}
         {isOffline && (
@@ -1156,22 +1156,21 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading (left) + New/Join (right) on same row */}
-          {/* min-w-0 on heading allows it to shrink if viewport is narrow, */}
-          {/* keeping both buttons fully visible at 360px+. */}
-          <div className="flex items-center justify-between gap-2 px-4 pt-1 pb-1.5">
-            <h1 className="text-white font-bold text-xl leading-tight tracking-tight min-w-0 shrink truncate">Your memories</h1>
-            <div className="flex items-center gap-1.5 shrink-0">
-              <NewJoinButtons
-                showCreateForm={showCreateForm}
-                showJoinForm={showJoinForm}
-                onOpenCreate={openCreate}
-                onOpenJoin={openJoin}
-                disabled={isOffline}
-              />
-            </div>
+          {/* Row 2: Heading — full width, no truncation */}
+          <div className="px-4 pt-1 pb-1">
+            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight">Your memories</h1>
           </div>
-          {/* Row 3: Feed/Timeline segmented control */}
+          {/* Row 3: New vault + Join vault buttons */}
+          <div className="flex items-center gap-2 px-4 pb-1.5">
+            <NewJoinButtons
+              showCreateForm={showCreateForm}
+              showJoinForm={showJoinForm}
+              onOpenCreate={openCreate}
+              onOpenJoin={openJoin}
+              disabled={isOffline}
+            />
+          </div>
+          {/* Row 4: Feed/Timeline segmented control */}
           <div className="px-4 pb-1.5">
             <FeedTimelineToggle
               viewMode={viewMode}

@@ -324,10 +324,18 @@ function FeedPostInner({
   }
 
   // ═══════════════════════════════════════════════════════════════════════════
-  // MEDIA POST (image / video) — visual unchanged from Pass 2
+  // MEDIA POST (image / video)
+  // Structural layout: flex-col card so metadata footer gets real space.
+  //   <card flex-col>
+  //     <media-area flex-1 min-h-0>  ← media fills remaining height
+  //     <footer shrink-0>            ← metadata always visible
+  // ActionRail overlays the media area (right side).
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="h-full w-full relative overflow-hidden bg-black">
+    <div className="h-full w-full flex flex-col bg-black overflow-hidden">
+
+      {/* Media area — flex-1 so it fills space not taken by footer */}
+      <div className="flex-1 min-h-0 relative overflow-hidden">
 
       {/* Video */}
       {post.media_type === "video" && post.media_url && (
@@ -350,15 +358,13 @@ function FeedPostInner({
           src={post.media_url}
           alt={post.caption ?? `${post.author_name}'s photo in ${post.vault_name}`}
           className="absolute inset-0 w-full h-full object-contain lg:object-cover"
-          // Active post: eager + high fetch priority so it displays without waiting.
-          // Inactive posts: lazy so the browser defers off-screen images.
           loading={isActive ? "eager" : "lazy"}
           decoding="async"
           fetchPriority={isActive ? "high" : "low"}
         />
       )}
 
-      {/* Cinematic scrim */}
+      {/* Cinematic scrim — only on media area */}
       <div className="feed-scrim absolute inset-0 pointer-events-none" />
 
       {/* Video progress bar — only for active video posts */}
@@ -428,11 +434,20 @@ function FeedPostInner({
       </div>
 
       {/* Author + caption overlay */}
-      {/* lg:pb-6 overrides the mobile bottom-nav clearance on desktop */}
-      <div
-        className="absolute bottom-0 left-0 right-16 px-5 space-y-3 pb-20 lg:pb-6"
-        style={{ paddingBottom: undefined }}
-      >
+      {/* ActionRail overlays the media area — right side */}
+      {/* ActionRail overlays the media area — positions relative to media div */}
+      <ActionRail
+        post={post} canDeletePost={canDeletePost} onLike={onLike}
+        onOpenComments={() => { setShowComments(true); loadComments() }}
+        onDelete={onDelete}
+        commentButtonRef={commentButtonRef}
+      />
+
+      {/* Close media area */}
+      </div>
+
+      {/* Footer — real document flow, shrink-0, always visible above nav */}
+      <div className="shrink-0 px-4 pt-3 pb-3 space-y-2 bg-black">
         <div className="flex items-center gap-2.5">
           <Avatar className="size-10 ring-1 ring-white/25 shrink-0 shadow-lg">
             <AvatarImage src={post.author_avatar} className="object-cover" />
@@ -488,13 +503,6 @@ function FeedPostInner({
         <p className="text-white/30 text-[11px] text-scrim">{formattedDate}</p>
       </div>
 
-      <ActionRail
-        post={post} canDeletePost={canDeletePost} onLike={onLike}
-        onOpenComments={() => { setShowComments(true); loadComments() }}
-        onDelete={onDelete}
-        commentButtonRef={commentButtonRef}
-      />
-
       {showComments && (
         <CommentSheet
           comments={comments} commentsLoading={commentsLoading}
@@ -539,8 +547,7 @@ function ActionRail({ post, canDeletePost, onLike, onOpenComments, onDelete, com
   canArchive = false, showArchived = false, onArchive }: ActionRailProps) {
   return (
     <div
-      className="absolute right-3 flex flex-col items-center gap-6"
-      style={{ bottom: "max(5rem, calc(env(safe-area-inset-bottom) + 4rem))" }}
+      className="absolute right-3 bottom-4 flex flex-col items-center gap-5"
     >
       <button
         onClick={() => onLike(post.id)}
