@@ -54,7 +54,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showCreateForm
@@ -70,7 +70,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-xs font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showJoinForm
@@ -1185,19 +1185,19 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading + actions — same row, heading left, buttons right */}
-          {/* flex-wrap means on very narrow screens buttons drop below */}
-          <div className="flex items-center justify-between gap-x-2 px-4 pt-0 pb-1">
-            <h1 className="text-white font-bold text-lg leading-tight tracking-tight min-w-0 shrink">Your memories</h1>
-            <div className="flex items-center gap-2 shrink-0">
-              <NewJoinButtons
-                showCreateForm={showCreateForm}
-                showJoinForm={showJoinForm}
-                onOpenCreate={openCreate}
-                onOpenJoin={openJoin}
-                disabled={isOffline}
-              />
-            </div>
+          {/* Row 2: Heading — full width, left-aligned */}
+          <div className="px-4 pt-0 pb-0.5">
+            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
+          </div>
+          {/* Row 3: Actions — right-aligned, directly under heading */}
+          <div className="flex justify-end gap-2 px-4 pb-1.5">
+            <NewJoinButtons
+              showCreateForm={showCreateForm}
+              showJoinForm={showJoinForm}
+              onOpenCreate={openCreate}
+              onOpenJoin={openJoin}
+              disabled={isOffline}
+            />
           </div>
         </div>
 
