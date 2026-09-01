@@ -1,7 +1,7 @@
 "use client"
 
 import { cn } from "@/lib/utils"
-import { Folder, LayoutList, Plus, Clapperboard, Settings } from "lucide-react"
+import { Folder, LayoutList, Plus, History, Settings } from "lucide-react"
 
 /**
  * MobileBottomNav — fixed bottom nav for mobile/tablet only (lg:hidden).
@@ -95,11 +95,11 @@ export function MobileBottomNav({
         </button>
       </div>
 
-      {/* Reels — maps to Timeline view */}
+      {/* Timeline view */}
       <button
         onClick={onSelectTimeline}
         disabled={disabled}
-        aria-label="Reels"
+        aria-label="Timeline"
         aria-pressed={viewMode === "timeline"}
         className={cn(
           "flex flex-col items-center gap-0.5 flex-1 py-2 min-h-11 justify-center",
@@ -107,8 +107,8 @@ export function MobileBottomNav({
           viewMode === "timeline" ? "text-primary" : "text-white/40 hover:text-white/80",
         )}
       >
-        <Clapperboard className="size-5" aria-hidden />
-        <span className="text-[10px] font-medium">Reels</span>
+        <History className="size-5" aria-hidden />
+        <span className="text-[10px] font-medium">Timeline</span>
       </button>
 
       {/* Settings */}

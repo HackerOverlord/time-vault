@@ -1156,31 +1156,21 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
 
-          {/* Row 2: Heading — full width, no truncation */}
-          <div className="px-4 pt-1 pb-1">
-            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight">Your memories</h1>
+          {/* Row 2: Heading + actions on same row, heading shrinks before buttons disappear */}
+          <div className="flex items-center justify-between gap-3 px-4 pt-1 pb-2">
+            <h1 className="text-white font-bold text-2xl leading-tight tracking-tight min-w-0 shrink">Your memories</h1>
+            <div className="flex items-center gap-2 shrink-0">
+              <NewJoinButtons
+                showCreateForm={showCreateForm}
+                showJoinForm={showJoinForm}
+                onOpenCreate={openCreate}
+                onOpenJoin={openJoin}
+                disabled={isOffline}
+              />
+            </div>
           </div>
-          {/* Row 3: New vault + Join vault buttons */}
-          <div className="flex items-center gap-2 px-4 pb-1.5">
-            <NewJoinButtons
-              showCreateForm={showCreateForm}
-              showJoinForm={showJoinForm}
-              onOpenCreate={openCreate}
-              onOpenJoin={openJoin}
-              disabled={isOffline}
-            />
-          </div>
-          {/* Row 4: Feed/Timeline segmented control */}
-          <div className="px-4 pb-1.5">
-            <FeedTimelineToggle
-              viewMode={viewMode}
-              onSetViewMode={setViewMode}
-              disabled={isOffline}
-            />
-          </div>
-
-          {/* Row 4: Vault selector — selection only */}
-          <div className="pb-1">{VaultSelector}</div>
+          {/* Feed/Timeline toggle and vault chips removed from mobile */}
+          {/* These are now handled via the bottom navigation */}
 
         </div>
 
