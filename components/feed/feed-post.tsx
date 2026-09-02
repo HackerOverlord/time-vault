@@ -350,12 +350,11 @@ function FeedPostInner({
                     lg:h-auto lg:flex lg:flex-col lg:rounded-2xl lg:border lg:border-white/[0.07]"
          style={{ background: "#000" }}>
 
-      {/* ── MediaRegion — fills the entire card (flex-1 removed; card is now h-full) */}
-      {/* Metadata overlays over bottom gradient — reclaims footer height for media */}
-      {/* Mobile: absolute overlay fills card. Desktop: flex-1 min-h-0. */}
-      {/* Mobile: absolute fill of the snap viewport.
-          Desktop: static block with 16/10 aspect ratio so the card has natural height. */}
-      <div className="absolute inset-0 lg:static lg:relative lg:overflow-hidden lg:aspect-video">
+      {/* MediaRegion.
+          Mobile: absolute fill of the full-viewport snap card.
+          Desktop: in-flow block with a 16:10 aspect ratio, so the card
+          gets a natural height and the metadata footer sits beneath it. */}
+      <div className="absolute inset-0 lg:relative lg:inset-auto lg:w-full lg:overflow-hidden lg:aspect-[16/10]">
 
         {/* Video */}
         {post.media_type === "video" && post.media_url && (
