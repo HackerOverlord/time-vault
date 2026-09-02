@@ -4,7 +4,7 @@ import React, { useState, useEffect, useRef, useCallback } from "react"
 import { toast } from "sonner"
 import {
   ArrowLeft, Check, X, RefreshCw, Pencil, Trash2,
-  LogOut, Users, Loader2, AlertTriangle, Copy,
+  LogOut, Users, Loader2, AlertTriangle, Copy, Share2,
   Camera, ImageIcon, Upload, Palette, Info,
   UserPlus, Star, Mail, Clock, BadgeCheck,
 } from "lucide-react"
@@ -248,6 +248,7 @@ export function GroupScreen({
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const [vaultName,     setVaultName]     = useState(group.name)
   const [inviteCode,    setInviteCode]    = useState(group.invite_code ?? "")
+  const [inviteToken,   setInviteToken]   = useState(group.invite_token ?? "")
   const [description,   setDescription]   = useState(group.description ?? "")
   const [accentColor,   setAccentColor]   = useState<VaultAccentColor | null>(group.accent_color ?? null)
   const [coverUrl,      setCoverUrl]      = useState<string | null>(group.cover_url ?? null)
@@ -428,14 +429,55 @@ export function GroupScreen({
     else { setInviteResult("error"); toast.error(r.error ?? "Failed to send") }
   }
 
-  // ── Copy invite code ───────────────────────────────────────────────────────
+  // ── Build invite link ───────────────────────────────────────────────────────
+  // Use query-param format: /?screen=invite&token=X
+  // This is SPA-safe — works on direct navigation, refresh, and Vercel.
+  // /invite/<token> paths would require a separate Next.js route file to avoid 404.
+  const inviteLink = inviteToken
+    ? `${typeof window !== "undefined" ? window.location.origin : ""}/?screen=invite&token=${inviteToken}`
+    : ""
+
+  // ── Copy invite link ─────────────────────────────────────────────────────────
+  const copyLink = async () => {
+    if (!inviteLink) return
+    try {
+      await navigator.clipboard.writeText(inviteLink)
+      setCopied(true)
+      setTimeout(() => setCopied(false), 2000)
+    } catch {
+      toast.error("Could not copy link")
+    }
+  }
+
+  // ── Native share (progressive enhancement) ───────────────────────────────────
+  const shareLink = async () => {
+    if (!inviteLink) return
+    if (typeof navigator !== "undefined" && navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join ${group.name} on Time Vault`,
+          text:  `You've been invited to join ${group.name}`,
+          url:   inviteLink,
+        })
+      } catch (err: unknown) {
+        // AbortError = user pressed Cancel — do nothing
+        if (err instanceof Error && err.name === "AbortError") return
+        // Other failure — show toast, do NOT auto-copy
+        toast.error("Share failed. Use Copy Link instead.")
+      }
+    } else {
+      // navigator.share unavailable — Copy Link is the primary action
+      // Do not auto-copy here; the Copy Link button is always visible
+    }
+  }
+
+  // ── Legacy: copy invite code (fallback) ──────────────────────────────────────
   const copyCode = async () => {
     try {
       await navigator.clipboard.writeText(displayCode)
       setCopied(true)
       setTimeout(() => setCopied(false), 2000)
     } catch {
-      // Clipboard API not available — show the code so they can copy manually
       toast.error("Could not copy. Code: " + displayCode)
     }
   }
@@ -444,14 +486,15 @@ export function GroupScreen({
   const regenerateCode = async () => {
     if (regenerating) return
     setRegenerating(true)
-    const result = await apiFetch<{ invite_code: string }>(
+    const result = await apiFetch<{ invite_code: string; invite_token?: string }>(
       `/api/vaults/${group.id}/invite/regenerate`,
       { method: "POST" }
     )
     setRegenerating(false)
     if (result.ok) {
       setInviteCode(result.data.invite_code)
-      toast.success("New invite code generated")
+      if (result.data.invite_token) setInviteToken(result.data.invite_token)
+      toast.success("New invite link generated")
     } else {
       toast.error(result.error ?? "Could not regenerate code")
     }
@@ -739,20 +782,21 @@ export function GroupScreen({
           <section aria-label="Invite code" className="bg-zinc-900 rounded-2xl border border-zinc-800 p-6 space-y-4">
             <h2 className="text-white font-bold">Invite people</h2>
             <p className="text-zinc-500 text-sm">
-              Share this code with someone to add them to this vault.
-              Regenerating the code immediately invalidates the old one.
+              Share this link to invite someone to this vault.
+              Generating a new link immediately invalidates the previous one.
             </p>
 
-            {/* Code display + copy */}
+            {/* Primary: Copy invite link */}
             <div className="flex items-center gap-3">
-              <div className="flex-1 bg-zinc-800 rounded-xl px-4 py-3 font-mono text-lg tracking-widest text-white font-bold text-center select-all">
-                {displayCode}
+              <div className="flex-1 bg-zinc-800 rounded-xl px-4 py-3 text-sm text-white/60 truncate select-all font-mono">
+                {inviteLink || "Generating link…"}
               </div>
               <button
-                onClick={copyCode}
-                aria-label={copied ? "Copied" : "Copy invite code"}
+                onClick={copyLink}
+                aria-label={copied ? "Copied" : "Copy invite link"}
+                disabled={!inviteLink}
                 className={cn(
-                  "flex min-h-11 min-w-11 items-center justify-center rounded-xl px-4 cursor-pointer transition-all font-semibold text-sm text-white",
+                  "flex min-h-11 min-w-11 items-center justify-center rounded-xl px-4 cursor-pointer transition-all font-semibold text-sm text-white disabled:opacity-40",
                   copied ? "bg-emerald-600 hover:bg-emerald-700" : "bg-primary hover:bg-primary/90"
                 )}
               >
@@ -760,17 +804,52 @@ export function GroupScreen({
               </button>
             </div>
 
-            {/* Regenerate */}
+            {/* Share (native share API if available) */}
+            {"share" in (typeof navigator !== "undefined" ? navigator : {}) && inviteLink && (
+              <button
+                onClick={shareLink}
+                className="flex items-center gap-2 text-primary/80 hover:text-primary text-sm
+                           transition-colors cursor-pointer min-h-10"
+              >
+                <Share2 className="size-3.5" /> Share invite
+              </button>
+            )}
+
+            {/* Regenerate link */}
             <button
               onClick={regenerateCode}
               disabled={regenerating}
-              aria-label="Generate new invite code"
+              aria-label="Generate new invite link"
               className="flex items-center gap-2 text-zinc-500 hover:text-white text-xs transition-colors
                          cursor-pointer disabled:opacity-50 min-h-11"
             >
               <RefreshCw className={cn("size-3.5", regenerating && "animate-spin")} />
-              {regenerating ? "Generating…" : "Generate new code"}
+              {regenerating ? "Generating…" : "Generate new link"}
             </button>
+
+            {/* Legacy code — secondary fallback */}
+            <details className="group">
+              <summary className="text-zinc-600 text-xs cursor-pointer hover:text-zinc-400 transition-colors list-none
+                                   flex items-center gap-1.5">
+                <span>Legacy invite code</span>
+              </summary>
+              <div className="mt-2 flex items-center gap-3">
+                <div className="flex-1 bg-zinc-800 rounded-xl px-4 py-3 font-mono text-base tracking-widest text-white/70 font-bold text-center select-all">
+                  {displayCode}
+                </div>
+                <button
+                  onClick={copyCode}
+                  aria-label="Copy invite code"
+                  className="flex min-h-11 min-w-11 items-center justify-center rounded-xl px-3
+                             cursor-pointer bg-zinc-700 hover:bg-zinc-600 transition-colors"
+                >
+                  <Copy className="size-4 text-white/60" />
+                </button>
+              </div>
+              <p className="mt-1.5 text-zinc-600 text-[11px]">
+                Legacy codes are for recipients who cannot open links.
+              </p>
+            </details>
           </section>
         )}
 

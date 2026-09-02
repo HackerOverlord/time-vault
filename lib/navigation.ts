@@ -1,1 +1,1 @@
-export type Screen = "login" | "register" | "feed" | "settings" | "group" | "claim"
+export type Screen = "login" | "register" | "feed" | "settings" | "group" | "claim" | "invite"

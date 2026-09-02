@@ -7,7 +7,8 @@ export interface Group {
   name: string
   member_count: number
   created_by: string
-  invite_code?: string
+  invite_code?:  string
+  invite_token?: string
   user_role: "owner" | "member"
   // Optional vault identity fields (Pass 18)
   cover_url?: string | null
