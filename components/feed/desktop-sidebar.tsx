@@ -34,7 +34,7 @@ export function DesktopSidebar({
 
   return (
     <aside
-      className="hidden lg:flex flex-col h-screen w-72 shrink-0 border-r border-white/[0.06]"
+      className="hidden lg:flex flex-col h-screen w-72 min-w-72 max-w-72 shrink-0 grow-0 basis-72 border-r border-white/[0.06]"
       style={{ background: "oklch(0.11 0.02 260)" }}
     >
       {/* App identity */}
