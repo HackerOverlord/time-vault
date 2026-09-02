@@ -34,7 +34,7 @@ export function DesktopSidebar({
 
   return (
     <aside
-      className="hidden lg:flex flex-col h-screen w-72 min-w-72 max-w-72 shrink-0 grow-0 basis-72 border-r border-white/[0.06]"
+      className="hidden lg:flex flex-col h-screen w-72 shrink-0 border-r border-white/[0.06]"
       style={{ background: "oklch(0.11 0.02 260)" }}
     >
       {/* App identity */}
@@ -170,8 +170,7 @@ export function DesktopSidebar({
           <span className="text-sm font-semibold">Share a memory</span>
         </button>
 
-        {/* User identity — avatar is the DropdownMenu trigger (matches mobile pattern).
-             Name is plain text outside all Radix components so it never collapses. */}
+        {/* User identity */}
         <div className="flex items-center gap-3 px-3 py-3 mt-1">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -205,7 +204,6 @@ export function DesktopSidebar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
-          {/* Name outside Radix — never affected by trigger lifecycle */}
           <div className="flex-1 min-w-0">
             <p className="text-sm font-medium text-white/80 leading-tight truncate">{currentUser?.name}</p>
             <p className="text-[11px] text-white/30">View profile</p>
