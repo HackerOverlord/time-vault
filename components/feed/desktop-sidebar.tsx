@@ -170,22 +170,18 @@ export function DesktopSidebar({
           <span className="text-sm font-semibold">Share a memory</span>
         </button>
 
-        {/* User identity */}
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <button className="w-full flex items-center gap-3 px-3 py-3 mt-1 cursor-pointer
-                               hover:bg-white/[0.04] rounded-xl transition-colors text-left
-                               focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-white/30">
-              <Avatar className="size-8 ring-1 ring-white/10 shrink-0">
-                <AvatarImage src={currentUser?.avatar} className="object-cover" />
-                <AvatarFallback className="bg-primary/30 text-primary text-xs font-bold">{initials}</AvatarFallback>
-              </Avatar>
-              <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium text-white/80 leading-tight truncate">{currentUser?.name}</p>
-                <p className="text-[11px] text-white/30">View profile</p>
-              </div>
-            </button>
-          </DropdownMenuTrigger>
+        {/* User identity — avatar is the DropdownMenu trigger (matches mobile pattern).
+             Name is plain text outside all Radix components so it never collapses. */}
+        <div className="flex items-center gap-3 px-3 py-3 mt-1">
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button className="cursor-pointer shrink-0" aria-label={`User menu for ${currentUser?.name ?? "account"}`}>
+                <Avatar className="size-8 ring-1 ring-white/10 hover:ring-white/30 transition-all">
+                  <AvatarImage src={currentUser?.avatar} className="object-cover" />
+                  <AvatarFallback className="bg-primary/30 text-primary text-xs font-bold">{initials}</AvatarFallback>
+                </Avatar>
+              </button>
+            </DropdownMenuTrigger>
             <DropdownMenuContent
               className="w-44 border-white/10"
               style={{ background: "oklch(0.14 0.02 260 / 0.97)", backdropFilter: "blur(20px)" }}
@@ -209,6 +205,12 @@ export function DesktopSidebar({
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
+          {/* Name outside Radix — never affected by trigger lifecycle */}
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-medium text-white/80 leading-tight truncate">{currentUser?.name}</p>
+            <p className="text-[11px] text-white/30">View profile</p>
+          </div>
+        </div>
       </div>
     </aside>
   )
