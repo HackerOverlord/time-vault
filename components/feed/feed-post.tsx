@@ -484,9 +484,11 @@ function FeedPostInner({
           )}
         </div>
 
-        {/* ── Bottom gradient overlay — MOBILE ONLY (lg:hidden) ── */}
+        {/* ── Bottom gradient overlay — MOBILE ONLY ── */}
+        {/* Double-wrapped: outer lg:hidden for CSS, inner is the styled div */}
+        <div className="lg:hidden">
         <div
-          className="absolute bottom-0 left-0 right-0 lg:hidden"
+          className="absolute bottom-0 left-0 right-0"
           style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 40%, transparent 100%)" }}
         >
           {/* Metadata */}
@@ -590,6 +592,7 @@ function FeedPostInner({
           )}
         </div>
       </div>
+      </div>{/* end mobile-only wrapper */}
 
       {/* ── Desktop MetadataFooter (hidden on mobile, shown lg+) ───────── */}
       <div className="hidden lg:block shrink-0 px-5 pt-3 pb-2 space-y-1.5"
