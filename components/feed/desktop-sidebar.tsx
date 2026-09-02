@@ -44,7 +44,7 @@ export function DesktopSidebar({
         <div className="w-full overflow-visible">
           <Logo />
         </div>
-        <p className="text-white/25 text-[11px] tracking-widest uppercase mt-12 font-medium">
+        <p className="text-white/25 text-[11px] tracking-widest uppercase mt-10 font-medium">
           Private Memory Theatre
         </p>
       </div>
@@ -171,10 +171,10 @@ export function DesktopSidebar({
         </button>
 
         {/* User identity */}
-        <div className="flex items-center gap-3 px-3 py-3 mt-1">
+        <div className="flex items-center gap-3 px-3 py-3 mt-1 min-w-0">
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <button className="cursor-pointer flex items-center gap-3 flex-1 min-w-0">
+              <button className="cursor-pointer flex items-center gap-3 w-full min-w-0">
                 <Avatar className="size-8 ring-1 ring-white/10 shrink-0">
                   <AvatarImage src={currentUser?.avatar} className="object-cover" />
                   <AvatarFallback className="bg-primary/30 text-primary text-xs font-bold">{initials}</AvatarFallback>
