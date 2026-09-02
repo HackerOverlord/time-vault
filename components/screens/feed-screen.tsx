@@ -322,8 +322,13 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           }
         }
       })
-    }, { threshold: 0.6 })
+    }, { threshold: 0.4, rootMargin: "0px" })
     postRefs.current.forEach(r => r && obs.observe(r))
+    // Immediately activate first post on mount so video plays without waiting
+    // for IntersectionObserver callback (avoids black-frame on initial render)
+    if (postRefs.current[0] && visiblePosts[0]) {
+      setActivePostId(visiblePosts[0].id)
+    }
     return () => obs.disconnect()
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [visiblePosts])
@@ -984,8 +989,12 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               </button>
             </div>
           )}
-          <div ref={scrollRef} className="flex-1 min-h-0 overflow-y-scroll snap-y snap-mandatory"
-               style={{ scrollSnapType: "y mandatory", scrollbarWidth: "none" }}>
+          {/* Mobile: full-viewport snap scroller, one memory at a time.
+              Desktop (lg+): normal vertical scroll, no snap — cards flow naturally. */}
+          <div ref={scrollRef}
+               className="flex-1 min-h-0 overflow-y-scroll snap-y snap-mandatory
+                          lg:snap-none lg:px-6 lg:py-4"
+               style={{ scrollbarWidth: "none" }}>
           {hasActiveFilter && (
             <span className="sr-only" role="status" aria-live="polite">
               {visiblePosts.length} {visiblePosts.length === 1 ? "memory" : "memories"} found
@@ -993,7 +1002,9 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           )}
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
-                 className="h-full w-full flex-shrink-0 px-1.5 py-1.5 lg:px-0 lg:py-0" style={{ scrollSnapAlign: "start" }}>
+                 className="h-full w-full flex-shrink-0 px-1.5 py-1.5
+                            lg:h-auto lg:px-0 lg:py-0 lg:mb-6 lg:max-w-3xl lg:mx-auto"
+                 style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
                 isActive={i === activeVisibleIndex}
