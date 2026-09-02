@@ -423,8 +423,8 @@ function FeedPostInner({
           </span>
         </div>
 
-        {/* Right-side actions — top-right area */}
-        <div className="absolute right-3 top-14 flex flex-col items-center gap-4">
+        {/* Right-side actions — mobile/tablet only; desktop uses overlay controls */}
+        <div className="absolute right-3 top-14 flex flex-col items-center gap-4 lg:hidden">
           {/* Mute — video only */}
           {post.media_type === "video" && (
             <button
@@ -594,7 +594,7 @@ function FeedPostInner({
       {/* ── Desktop MetadataFooter (hidden on mobile, shown lg+) ───────── */}
       <div className="hidden lg:block shrink-0 px-5 pt-3 pb-2 space-y-1.5"
            style={{ background: "rgba(0,0,0,0.97)" }}>
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2.5 min-w-0">
           <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
             <AvatarImage src={post.author_avatar} className="object-cover" />
             <AvatarFallback className="text-sm font-bold"
@@ -602,7 +602,7 @@ function FeedPostInner({
               {post.author_name[0]}
             </AvatarFallback>
           </Avatar>
-          <div className="min-w-0">
+          <div className="min-w-0 flex-1">
             <p className="text-white text-[14px] font-semibold leading-tight truncate">{post.author_name}</p>
             <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
               <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white/50"
