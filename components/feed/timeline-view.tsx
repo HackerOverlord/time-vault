@@ -497,8 +497,9 @@ function MemoryViewer({
       </div>
 
       {/* FeedPost in "active" mode — enables media playback, likes, comments */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-md mx-auto">
+      {/* flex-1 min-h-0 gives a definite height so FeedPost h-full resolves correctly */}
+      <div className="flex-1 min-h-0 flex flex-col">
+        <div className="flex-1 min-h-0 max-w-md mx-auto w-full">
           <FeedPost
             post={post}
             isActive={true}
