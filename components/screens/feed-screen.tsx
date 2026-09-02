@@ -702,20 +702,14 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           Vaults are private spaces where you share memories with the people who matter most.
         </p>
       </div>
-      <div className="flex flex-col sm:flex-row gap-3">
-        {/* Empty-state buttons use the same openCreate / openJoin callbacks as
-            the header buttons. They set createTriggerRef.current to themselves
-            so focus returns correctly even if the header trigger is off-screen. */}
-        <Button
-          onClick={openCreate}
-          className="bg-primary hover:bg-primary/90 text-white rounded-2xl cursor-pointer px-6 h-11 text-sm font-semibold"
-        >
-          <Plus className="size-4 mr-2" aria-hidden /> Create vault
-        </Button>
-        <p className="text-white/30 text-sm">
-          Ask a vault owner for an invite link to join.
-        </p>
-      </div>
+      {/* Empty-state button — same openCreate callback as the header button.
+          createTriggerRef is set on click so focus returns correctly. */}
+      <Button
+        onClick={openCreate}
+        className="bg-primary hover:bg-primary/90 text-white rounded-2xl cursor-pointer px-6 h-11 text-sm font-semibold"
+      >
+        <Plus className="size-4 mr-2" aria-hidden /> Create vault
+      </Button>
     </div>
   )
 
