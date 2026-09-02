@@ -355,7 +355,7 @@ function FeedPostInner({
       {/* Mobile: absolute overlay fills card. Desktop: flex-1 min-h-0. */}
       {/* Mobile: absolute fill of the snap viewport.
           Desktop: static block with 16/10 aspect ratio so the card has natural height. */}
-      <div className="absolute inset-0 lg:static lg:relative lg:overflow-hidden lg:aspect-[16/10]">
+      <div className="absolute inset-0 lg:static lg:relative lg:overflow-hidden lg:aspect-video">
 
         {/* Video */}
         {post.media_type === "video" && post.media_url && (

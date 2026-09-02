@@ -1003,7 +1003,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
                  className="h-full w-full flex-shrink-0 px-1.5 py-1.5
-                            lg:h-auto lg:px-0 lg:py-0 lg:mb-6 lg:max-w-3xl lg:mx-auto"
+                            lg:h-auto lg:px-0 lg:py-0 lg:mb-6 lg:max-w-4xl lg:mx-auto"
                  style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
