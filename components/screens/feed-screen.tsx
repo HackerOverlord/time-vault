@@ -35,52 +35,32 @@ interface FeedScreenProps {
 const CACHE_TTL = 60_000
 
 // ─── Vault action buttons ─────────────────────────────────────────────────────
-// ── New/Join buttons only (used in mobile heading row) ─────────────────────
-interface NewJoinButtonsProps {
+// ── New vault button only (Join vault removed — use invite links instead) ─────
+interface NewVaultButtonProps {
   showCreateForm: boolean
-  showJoinForm: boolean
   onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
-  onOpenJoin:   (e: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
 }
-const NewJoinButtons = React.memo(function NewJoinButtons({
-  showCreateForm, showJoinForm, onOpenCreate, onOpenJoin, disabled = false,
-}: NewJoinButtonsProps) {
+const NewVaultButton = React.memo(function NewVaultButton({
+  showCreateForm, onOpenCreate, disabled = false,
+}: NewVaultButtonProps) {
   return (
-    <>
-      <button
-        onClick={onOpenCreate}
-        disabled={disabled}
-        aria-expanded={showCreateForm}
-        aria-label="New vault"
-        className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
-          "border",
-          showCreateForm
-            ? "bg-white/15 text-white border-white/20"
-            : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
-        )}
-      >
-        <Plus className="size-3.5" aria-hidden /> New vault
-      </button>
-      <button
-        onClick={onOpenJoin}
-        disabled={disabled}
-        aria-expanded={showJoinForm}
-        aria-label="Join vault"
-        className={cn(
-          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
-          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
-          "border",
-          showJoinForm
-            ? "bg-white/15 text-white border-white/20"
-            : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
-        )}
-      >
-        <LogIn className="size-3.5" aria-hidden /> Join vault
-      </button>
-    </>
+    <button
+      onClick={onOpenCreate}
+      disabled={disabled}
+      aria-expanded={showCreateForm}
+      aria-label="New vault"
+      className={cn(
+        "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
+        "border",
+        showCreateForm
+          ? "bg-white/15 text-white border-white/20"
+          : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
+      )}
+    >
+      <Plus className="size-3.5" aria-hidden /> New vault
+    </button>
   )
 })
 
@@ -142,24 +122,20 @@ const FeedTimelineToggle = React.memo(function FeedTimelineToggle({
 // ── Combined (used in desktop header) ────────────────────────────────────────
 interface VaultActionButtonsProps {
   showCreateForm: boolean
-  showJoinForm: boolean
   onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
-  onOpenJoin:   (e: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
   viewMode: "feed" | "timeline" | "vaults" | null
   onSetViewMode: (mode: "feed" | "timeline") => void
 }
 const VaultActionButtons = React.memo(function VaultActionButtons({
-  showCreateForm, showJoinForm, onOpenCreate, onOpenJoin, disabled = false,
+  showCreateForm, onOpenCreate, disabled = false,
   viewMode, onSetViewMode,
 }: VaultActionButtonsProps) {
   return (
     <div className="flex items-center gap-2" role="group" aria-label="Vault actions">
-      <NewJoinButtons
+      <NewVaultButton
         showCreateForm={showCreateForm}
-        showJoinForm={showJoinForm}
         onOpenCreate={onOpenCreate}
-        onOpenJoin={onOpenJoin}
         disabled={disabled}
       />
       <FeedTimelineToggle viewMode={viewMode} onSetViewMode={onSetViewMode} disabled={disabled} />
@@ -736,12 +712,9 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         >
           <Plus className="size-4 mr-2" aria-hidden /> Create vault
         </Button>
-        <button
-          onClick={openJoin}
-          className="border border-white/20 text-white/70 hover:text-white hover:bg-white/[0.06] rounded-2xl cursor-pointer px-6 h-11 text-sm font-semibold bg-transparent inline-flex items-center transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/40"
-        >
-          <LogIn className="size-4 mr-2" aria-hidden /> Join vault
-        </button>
+        <p className="text-white/30 text-sm">
+          Ask a vault owner for an invite link to join.
+        </p>
       </div>
     </div>
   )
@@ -966,6 +939,23 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               <ChevronRight className="size-4 text-white/25 shrink-0" />
             </button>
           ))}
+
+          {/* Legacy invite code entry — secondary fallback */}
+          <div className="mt-4 pt-4 border-t border-white/[0.06]">
+            <details className="group">
+              <summary className="text-white/30 text-xs cursor-pointer hover:text-white/50 transition-colors list-none
+                                   flex items-center gap-1.5 min-h-9">
+                Have a legacy invite code?
+              </summary>
+              <div className="mt-2">
+                <JoinVaultForm
+                  open={true}
+                  onJoined={handleJoined}
+                  onClose={() => {}} // No close needed in vaults view
+                />
+              </div>
+            </details>
+          </div>
         </div>
       )
       : viewMode === "timeline" ? (
@@ -1189,13 +1179,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           <div className="px-4 pt-0 pb-2">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
-          {/* Row 3: Actions — left-aligned, directly under heading */}
-          <div className="flex justify-start gap-3 px-4 pb-4">
-            <NewJoinButtons
+          {/* Row 3: New vault button */}
+          <div className="flex justify-start px-4 pb-4">
+            <NewVaultButton
               showCreateForm={showCreateForm}
-              showJoinForm={showJoinForm}
               onOpenCreate={openCreate}
-              onOpenJoin={openJoin}
               disabled={isOffline}
             />
           </div>
@@ -1222,9 +1210,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               />
               <VaultActionButtons
                 showCreateForm={showCreateForm}
-                showJoinForm={showJoinForm}
                 onOpenCreate={openCreate}
-                onOpenJoin={openJoin}
                 disabled={isOffline}
                 viewMode={viewMode}
                 onSetViewMode={setViewMode}
@@ -1298,18 +1284,13 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             Focus restoration targets whichever button set createTriggerRef /
             joinTriggerRef — checked for visibility before focusing.
         ═══════════════════════════════════════════════════════════════════ */}
-        {(showCreateForm || showJoinForm) && (
+        {showCreateForm && (
           <div className="shrink-0 px-4 lg:px-6 py-2 border-b border-white/[0.05]"
                style={{ background: "rgba(0,0,0,0.70)" }}>
             <CreateVaultForm
               open={showCreateForm}
               onCreated={handleVaultCreated}
               onClose={closeCreate}
-            />
-            <JoinVaultForm
-              open={showJoinForm}
-              onJoined={handleJoined}
-              onClose={closeJoin}
             />
           </div>
         )}

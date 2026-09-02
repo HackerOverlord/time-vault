@@ -8,8 +8,9 @@ import { Logo } from "@/components/logo"
 import { Check, X, Users, AlertCircle, Loader2 } from "lucide-react"
 
 interface InviteScreenProps {
-  token:      string
-  onNavigate: (s: Screen) => void
+  token:           string
+  onNavigate:      (s: Screen) => void
+  onJoinedVault?:  (vault: import("@/lib/types").Group) => void
 }
 
 interface InviteInfo {
@@ -19,6 +20,7 @@ interface InviteInfo {
   accent_color:   string | null
   inviter_name:   string
   already_member: boolean
+  vault?:         import("@/lib/types").Group  // present when already_member=true
 }
 
 /**
@@ -32,7 +34,7 @@ interface InviteInfo {
  *   joining   — POST in progress
  *   joined    — success
  */
-export function InviteScreen({ token, onNavigate }: InviteScreenProps) {
+export function InviteScreen({ token, onNavigate, onJoinedVault }: InviteScreenProps) {
   const [state,  setState]  = useState<"loading" | "invalid" | "already" | "confirm" | "joining" | "joined">("loading")
   const [info,   setInfo]   = useState<InviteInfo | null>(null)
   const [error,  setError]  = useState<string | null>(null)
@@ -63,7 +65,13 @@ export function InviteScreen({ token, onNavigate }: InviteScreenProps) {
     )
     if (res.ok) {
       setState("joined")
-      setTimeout(() => onNavigate("feed"), 1400)
+      const joinedVault = res.data?.vault
+      if (onJoinedVault && joinedVault) {
+        // Pass the full Group object from the join response for direct navigation
+        setTimeout(() => onJoinedVault(joinedVault), 1200)
+      } else {
+        setTimeout(() => onNavigate("feed"), 1400)
+      }
     } else {
       setError(res.error ?? "Could not join vault. Please try again.")
       setState("confirm")
@@ -137,7 +145,13 @@ export function InviteScreen({ token, onNavigate }: InviteScreenProps) {
               <p className="text-white/50 text-sm mt-1">You're already a member.</p>
             </div>
             <button
-              onClick={() => onNavigate("feed")}
+              onClick={() => {
+                if (onJoinedVault && info.vault) {
+                  onJoinedVault(info.vault)
+                } else {
+                  onNavigate("feed")
+                }
+              }}
               className="px-6 py-2.5 rounded-full text-sm font-semibold text-white cursor-pointer transition-colors"
               style={{ background: accent }}
             >

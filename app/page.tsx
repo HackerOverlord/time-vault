@@ -60,6 +60,13 @@ export default function App() {
       setScreen("invite")
       return
     }
+    // Clear invite query params when navigating away from invite flow
+    if (s !== "invite" && inviteToken) {
+      setInviteToken(null)
+      if (typeof window !== "undefined" && window.location.search.includes("screen=invite")) {
+        window.history.replaceState({}, "", "/")
+      }
+    }
     if (group) setActiveGroup(group)
     setScreen(s)
   }
@@ -86,10 +93,18 @@ export default function App() {
       {screen === "feed"     && <FeedScreen     groupsVersion={groupsVersion} onNavigate={navigate} />}
       {screen === "settings" && <SettingsScreen onNavigate={navigate} />}
       {screen === "invite"    && inviteToken && (
-        <InviteScreen token={inviteToken} onNavigate={s => {
-          setInviteToken(null)
-          navigate(s as Screen)
-        }} />
+        <InviteScreen
+          token={inviteToken}
+          onNavigate={s => {
+            setInviteToken(null)
+            navigate(s as Screen)
+          }}
+          onJoinedVault={vault => {
+            setInviteToken(null)
+            // Navigate directly to the specific vault using the existing GroupScreen route
+            navigate("group" as Screen, vault)
+          }}
+        />
       )}
       {screen === "claim"     && claimToken && (
         <ClaimScreen token={claimToken} onNavigate={s => {
