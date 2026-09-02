@@ -54,7 +54,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showCreateForm}
         aria-label="New vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showCreateForm
@@ -70,7 +70,7 @@ const NewJoinButtons = React.memo(function NewJoinButtons({
         aria-expanded={showJoinForm}
         aria-label="Join vault"
         className={cn(
-          "inline-flex items-center gap-1 px-2.5 min-h-8 rounded-full text-[11px] font-semibold transition-all cursor-pointer",
+          "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
           "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
           "border",
           showJoinForm
@@ -1186,11 +1186,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading — full width, left-aligned */}
-          <div className="px-4 pt-0 pb-0">
+          <div className="px-4 pt-0 pb-2">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
           {/* Row 3: Actions — left-aligned, directly under heading */}
-          <div className="flex justify-start gap-2 px-4 pb-1">
+          <div className="flex justify-start gap-3 px-4 pb-4">
             <NewJoinButtons
               showCreateForm={showCreateForm}
               showJoinForm={showJoinForm}
@@ -1238,7 +1238,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-1 py-1 border-b border-white/[0.04]"
+        <div className="shrink-0 space-y-2.5 py-0 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           <div className="px-4 lg:px-6">
             <div className="relative flex items-center">
@@ -1250,7 +1250,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search memories…"
-                className="w-full h-9 bg-white/[0.07] border border-white/[0.12] rounded-xl
+                className="w-full h-11 bg-white/[0.07] border border-white/[0.12] rounded-xl
                            pl-9 pr-9 text-[16px] text-white/90 placeholder:text-white/35
                            outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
               />
@@ -1263,7 +1263,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             </div>
           </div>
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-1.5 px-4 lg:px-6 overflow-x-auto pb-0 lg:gap-1.5">
+               className="pill-strip flex gap-2 px-4 lg:px-6 overflow-x-auto pb-3 lg:pb-0 lg:gap-1.5">
             {([
               { value: "all",     label: "All" },
               { value: "image",   label: "Photos" },
@@ -1276,7 +1276,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 onClick={() => setFeedFilter(value)}
                 aria-pressed={feedFilter === value}
                 className={cn(
-                  "px-2.5 min-h-9 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
+                  "px-3 min-h-10 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
                   "transition-all duration-150 cursor-pointer shrink-0",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
                   feedFilter === value
