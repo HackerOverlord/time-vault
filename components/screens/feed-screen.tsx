@@ -1189,8 +1189,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           <div className="px-4 pt-0 pb-0.5">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
-          {/* Row 3: Actions — right-aligned, directly under heading */}
-          <div className="flex justify-end gap-2 px-4 pb-1.5">
+          {/* Row 3: Actions — left-aligned, directly under heading */}
+          <div className="flex justify-start gap-2 px-4 pb-1.5">
             <NewJoinButtons
               showCreateForm={showCreateForm}
               showJoinForm={showJoinForm}
