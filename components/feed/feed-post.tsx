@@ -431,7 +431,7 @@ function FeedPostInner({
               onClick={() => onMuteChange(!muted)}
               aria-label={muted ? "Unmute" : "Mute"}
               className="flex min-h-11 min-w-11 items-center justify-center rounded-full
-                         bg-black/30 text-white/90 hover:text-white transition-colors cursor-pointer"
+                         bg-black/20 text-white/90 hover:text-white transition-colors cursor-pointer"
             >
               {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
             </button>
@@ -443,7 +443,7 @@ function FeedPostInner({
             aria-label={post.has_liked ? "Unlike" : "Like"}
             aria-pressed={post.has_liked}
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/30 py-2 px-2"
+                       rounded-full bg-black/20 py-1.5 px-1.5"
           >
             <Heart className={cn("size-6 transition-colors duration-150 drop-shadow",
               post.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
@@ -461,7 +461,7 @@ function FeedPostInner({
             aria-label="Comments"
             aria-haspopup="dialog"
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/30 py-2 px-2"
+                       rounded-full bg-black/20 py-1.5 px-1.5"
           >
             <MessageCircle className="size-6 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
             {(post.comment_count ?? 0) > 0 && (
@@ -477,7 +477,7 @@ function FeedPostInner({
               onClick={() => confirm("Delete this post?") && onDelete(post.id)}
               aria-label="Delete post"
               className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
-                         rounded-full bg-black/30 p-2"
+                         rounded-full bg-black/20 p-1.5"
             >
               <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
             </button>
@@ -574,8 +574,11 @@ function FeedPostInner({
                   if (!el) return
                   if (document.fullscreenElement) {
                     document.exitFullscreen().catch(() => {})
-                  } else {
-                    el.requestFullscreen?.().catch(() => {})
+                  } else if (el.requestFullscreen) {
+                    el.requestFullscreen().catch(() => {})
+                  } else if ((el as any).webkitEnterFullscreen) {
+                    // iOS Safari fallback — native video fullscreen
+                    ;(el as any).webkitEnterFullscreen()
                   }
                 }}
                 aria-label="Fullscreen"
