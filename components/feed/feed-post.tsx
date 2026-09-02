@@ -423,7 +423,7 @@ function FeedPostInner({
         </div>
 
         {/* Right-side actions — mobile/tablet only; desktop uses overlay controls */}
-        <div className="absolute right-3 top-14 flex flex-col items-center gap-4">
+        <div className="absolute right-3 top-14 lg:top-40 flex flex-col items-center gap-4">
           {/* Mute — video only */}
           {post.media_type === "video" && (
             <button
