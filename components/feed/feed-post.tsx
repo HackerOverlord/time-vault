@@ -346,15 +346,12 @@ function FeedPostInner({
   // natural height first; media takes what remains.
   // ═══════════════════════════════════════════════════════════════════════════
   return (
-    <div className="h-full w-full overflow-hidden rounded-2xl relative
-                    lg:h-auto lg:flex lg:flex-col lg:rounded-2xl lg:border lg:border-white/[0.07]"
+    <div className="h-full w-full overflow-hidden rounded-2xl relative"
          style={{ background: "#000" }}>
 
-      {/* MediaRegion.
-          Mobile: absolute fill of the full-viewport snap card.
-          Desktop: in-flow block with a 16:10 aspect ratio, so the card
-          gets a natural height and the metadata footer sits beneath it. */}
-      <div className="absolute inset-0 lg:relative lg:inset-auto lg:w-full lg:overflow-hidden lg:aspect-[16/10]">
+      {/* MediaRegion — absolute fill of the snap card at every breakpoint.
+          Metadata, playback controls and the action stack overlay it. */}
+      <div className="absolute inset-0">
 
         {/* Video */}
         {post.media_type === "video" && post.media_url && (
@@ -426,7 +423,7 @@ function FeedPostInner({
         </div>
 
         {/* Right-side actions — mobile/tablet only; desktop uses overlay controls */}
-        <div className="absolute right-3 top-14 flex flex-col items-center gap-4 lg:hidden">
+        <div className="absolute right-3 top-14 flex flex-col items-center gap-4">
           {/* Mute — video only */}
           {post.media_type === "video" && (
             <button
@@ -486,9 +483,7 @@ function FeedPostInner({
           )}
         </div>
 
-        {/* ── Bottom gradient overlay — MOBILE ONLY ── */}
-        {/* Double-wrapped: outer lg:hidden for CSS, inner is the styled div */}
-        <div className="lg:hidden">
+        {/* ── Bottom gradient overlay — author, caption, playback ── */}
         <div
           className="absolute bottom-0 left-0 right-0"
           style={{ background: "linear-gradient(to top, rgba(0,0,0,0.92) 0%, rgba(0,0,0,0.7) 40%, transparent 100%)" }}
@@ -594,75 +589,6 @@ function FeedPostInner({
           )}
         </div>
       </div>
-      </div>{/* end mobile-only wrapper */}
-
-      {/* ── Desktop MetadataFooter (hidden on mobile, shown lg+) ───────── */}
-      <div className="hidden lg:block shrink-0 px-5 pt-3 pb-2 space-y-1.5"
-           style={{ background: "rgba(0,0,0,0.97)" }}>
-        <div className="flex items-center gap-2.5 min-w-0">
-          <Avatar className="size-9 ring-1 ring-white/20 shrink-0">
-            <AvatarImage src={post.author_avatar} className="object-cover" />
-            <AvatarFallback className="text-sm font-bold"
-              style={{ background: "oklch(0.65 0.18 240 / 0.35)", color: "oklch(0.65 0.18 240)" }}>
-              {post.author_name[0]}
-            </AvatarFallback>
-          </Avatar>
-          <div className="min-w-0 flex-1">
-            <p className="text-white text-[14px] font-semibold leading-tight truncate">{post.author_name}</p>
-            <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
-              <span className="px-2 py-0.5 rounded-full text-[10px] font-medium text-white/50"
-                    style={{ background: "rgba(255,255,255,0.07)" }}>
-                {post.vault_name}
-              </span>
-              <span className="text-white/30 text-[10px]">{formattedDate}</span>
-            </div>
-          </div>
-        </div>
-        {post.caption && (
-          <p className={cn("text-white/80 text-[13px] leading-snug", !captionExpanded && "line-clamp-2")}>
-            {post.caption}
-            {post.caption.length > 80 && (
-              <button onClick={() => setCaptionExpanded(e => !e)}
-                className="ml-1 text-white/40 text-[11px] font-medium hover:text-white/70 cursor-pointer">
-                {captionExpanded ? " less" : " more"}
-              </button>
-            )}
-          </p>
-        )}
-      </div>
-
-      {/* ── Desktop PlaybackControls (hidden on mobile, shown lg+) ──────── */}
-      {post.media_type === "video" && (
-        <div className="hidden lg:flex shrink-0 items-center gap-3 px-5 pt-1 pb-3"
-             style={{ background: "rgba(0,0,0,0.97)" }}>
-          <button onClick={() => setPlaying(p => !p)} aria-label={playing ? "Pause" : "Play"}
-                  className="flex items-center justify-center size-8 shrink-0 cursor-pointer">
-            {playing ? <Pause className="size-5 text-white/80" /> : <Play className="size-5 text-white/80 ml-0.5" />}
-          </button>
-          <div className="flex-1 relative h-5 flex items-center cursor-pointer"
-               onClick={e => {
-                 const rect = e.currentTarget.getBoundingClientRect()
-                 const pct = (e.clientX - rect.left) / rect.width
-                 if (videoRef.current) videoRef.current.currentTime = pct * (videoRef.current.duration || 0)
-               }}>
-            <div className="w-full h-[3px] bg-white/25 rounded-full relative">
-              <div className="absolute inset-y-0 left-0 bg-white/70 rounded-full"
-                   style={{ width: `${progress * 100}%` }} />
-              <div className="absolute top-1/2 -translate-y-1/2 -translate-x-1/2 size-3 rounded-full bg-white shadow"
-                   style={{ left: `${progress * 100}%` }} />
-            </div>
-          </div>
-          {videoRef.current && (
-            <span className="text-white/40 text-[11px] tabular-nums shrink-0">
-              {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"00")}
-              :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"00")}
-              {" / "}
-              {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"00")}
-              :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"00")}
-            </span>
-          )}
-        </div>
-      )}
 
       {showComments && (
         <CommentSheet

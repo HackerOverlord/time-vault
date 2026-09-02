@@ -989,11 +989,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               </button>
             </div>
           )}
-          {/* Mobile: full-viewport snap scroller, one memory at a time.
-              Desktop (lg+): normal vertical scroll, no snap — cards flow naturally. */}
+          {/* Immersive snap scroller on ALL breakpoints — one memory at a time.
+              Desktop keeps snap; it just occupies the Feed viewport beneath the
+              desktop header/search/filters rather than the whole window. */}
           <div ref={scrollRef}
-               className="flex-1 min-h-0 overflow-y-scroll snap-y snap-mandatory
-                          lg:snap-none lg:px-6 lg:py-4"
+               className="flex-1 min-h-0 overflow-y-scroll snap-y snap-mandatory"
                style={{ scrollbarWidth: "none" }}>
           {hasActiveFilter && (
             <span className="sr-only" role="status" aria-live="polite">
@@ -1003,7 +1003,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           {visiblePosts.map((post, i) => (
             <div key={post.id} ref={el => { postRefs.current[i] = el }}
                  className="h-full w-full flex-shrink-0 px-1.5 py-1.5
-                            lg:h-auto lg:px-0 lg:py-0 lg:mb-6 lg:max-w-4xl lg:mx-auto"
+                            lg:px-6 lg:py-4"
                  style={{ scrollSnapAlign: "start" }}>
               <FeedPost
                 post={post}
