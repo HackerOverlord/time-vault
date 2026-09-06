@@ -5,6 +5,7 @@ import ReactCrop, { type Crop, centerCrop, makeAspectCrop } from "react-image-cr
 import "react-image-crop/dist/ReactCrop.css"
 import { ArrowLeft, Camera, Upload, Bell, X } from "lucide-react"
 import { Button } from "@/components/ui/button"
+import { Logo } from "@/components/logo"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
@@ -241,17 +242,25 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
 
       {/* Header */}
       <div className="sticky top-0 z-50 border-b border-zinc-800 bg-background/80 backdrop-blur-md">
-        <div className="max-w-2xl mx-auto px-5 h-16 flex items-center gap-4">
+        <div className="max-w-2xl mx-auto px-5 h-16 flex items-center gap-3 sm:gap-4">
+          {/* Brand anchor — the existing Logo component, scaled down to sit
+              inside the 64px header. Settings is full-width with no sidebar,
+              so this is the only branding on the screen (no duplication). */}
+          <div className="overflow-visible shrink-0 flex items-center"
+               style={{ height: "2.25rem" }}>
+            <Logo scale={0.45} />
+          </div>
+          <div className="h-4 w-px bg-zinc-800 shrink-0" aria-hidden />
           <button
             onClick={() => onNavigate("feed")}
             aria-label="Back to feed"
-            className="flex items-center gap-2 min-h-11 text-zinc-400 hover:text-white transition-colors cursor-pointer group"
+            className="flex items-center gap-2 min-h-11 text-zinc-400 hover:text-white transition-colors cursor-pointer group shrink-0"
           >
             <ArrowLeft className="size-4 group-hover:-translate-x-0.5 transition-transform" aria-hidden />
             <span className="text-sm font-medium">Back</span>
           </button>
-          <div className="h-4 w-px bg-zinc-800" aria-hidden />
-          <h1 className="text-white font-bold text-sm">Settings</h1>
+          <div className="h-4 w-px bg-zinc-800 shrink-0" aria-hidden />
+          <h1 className="text-white font-bold text-sm shrink-0">Settings</h1>
         </div>
       </div>
 
