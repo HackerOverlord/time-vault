@@ -166,6 +166,55 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   const [showArchived, setShowArchived]    = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
   const [unreadCount, setUnreadCount]     = useState(0)
+
+  // ── In-app toast notifications ──────────────────────────────────────────────
+  // Reuses the SAME notification data that feeds the bell/history — no second
+  // model, no extra fetch. Reacts to genuinely new IDs appearing in the list.
+  //
+  // seenNotifIds is baselined on the FIRST notifications response, so existing
+  // unread history never toasts on app open. Only IDs that appear afterwards
+  // produce a toast, and each ID toasts at most once per session.
+  const seenNotifIds = useRef<Set<string> | null>(null)
+
+  useEffect(() => {
+    // First response: record the baseline, toast nothing.
+    if (seenNotifIds.current === null) {
+      if (notifications.length === 0) return   // wait for the first real payload
+      seenNotifIds.current = new Set(notifications.map(n => String(n.id)))
+      return
+    }
+
+    // Types worth interrupting the user for. Deliberately excludes
+    // post_liked (noisy) and anything the current user did themselves.
+    const TOASTABLE = new Set([
+      "member_joined",
+      "comment_received",
+      "new_post",
+      "capsule_unlocked",
+      "vault_received",
+      "claim_invite_created",
+      "vault_claimed",
+    ])
+
+    for (const n of notifications) {
+      const id = String(n.id)
+      if (seenNotifIds.current.has(id)) continue
+      seenNotifIds.current.add(id)
+      if (!TOASTABLE.has(n.type)) continue
+      // Skip self-authored confirmations ("You joined X", "You were removed…").
+      if (typeof n.message === "string" && n.message.startsWith("You ")) continue
+
+      const vaultId = n.vault_id ? String(n.vault_id) : null
+      toast(n.message, {
+        ...(vaultId ? {
+          action: {
+            label: "View",
+            onClick: () => { setActiveGroupId(vaultId); setViewMode("feed") },
+          },
+        } : {}),
+      })
+    }
+  }, [notifications])
   const [loading, setLoading]             = useState(true)
   // hasLoadedFeed: true once any successful posts response has been received.
   const [hasLoadedFeed, setHasLoadedFeed]   = useState(false)

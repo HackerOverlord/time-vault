@@ -126,11 +126,20 @@ export default function App() {
         />
       )}
 
+      {/* Toasts: top-center on mobile (below the browser chrome, above the
+          Time Vault logo row is avoided by the offset), top-right on desktop.
+          Dark translucent surface matching the Time Vault palette. */}
       <Toaster
         theme="dark"
-        position="bottom-right"
+        position="top-center"
+        offset={12}
+        duration={4500}
+        className="lg:!right-4 lg:!left-auto lg:!top-4"
         toastOptions={{
           classNames: {
+            toast: "!bg-[rgba(14,14,18,0.94)] !border !border-white/[0.10] !rounded-xl !backdrop-blur-xl !shadow-2xl",
+            title: "!text-white !text-[13px] !font-medium",
+            description: "!text-white/50 !text-[12px]",
             actionButton: "!bg-transparent !border-0 !text-zinc-400 hover:!text-white !p-0",
           },
         }}
