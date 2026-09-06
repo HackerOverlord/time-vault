@@ -40,9 +40,11 @@ interface NewVaultButtonProps {
   showCreateForm: boolean
   onOpenCreate: (e: React.MouseEvent<HTMLButtonElement>) => void
   disabled?: boolean
+  /** compact: mobile control-row variant — 42px tall, label "Vault". */
+  compact?: boolean
 }
 const NewVaultButton = React.memo(function NewVaultButton({
-  showCreateForm, onOpenCreate, disabled = false,
+  showCreateForm, onOpenCreate, disabled = false, compact = false,
 }: NewVaultButtonProps) {
   return (
     <button
@@ -51,15 +53,17 @@ const NewVaultButton = React.memo(function NewVaultButton({
       aria-expanded={showCreateForm}
       aria-label="New vault"
       className={cn(
-        "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold transition-all cursor-pointer",
+        "inline-flex items-center transition-all cursor-pointer border",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
-        "border",
+        compact
+          ? "shrink-0 gap-1 px-2.5 h-[42px] rounded-xl text-[13px] font-semibold"
+          : "gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold",
         showCreateForm
           ? "bg-white/15 text-white border-white/20"
           : "bg-transparent text-white/80 border-white/20 hover:bg-white/[0.08] hover:text-white"
       )}
     >
-      <Plus className="size-3.5" aria-hidden /> New vault
+      <Plus className="size-3.5" aria-hidden /> {compact ? "Vault" : "New vault"}
     </button>
   )
 })
@@ -1190,16 +1194,8 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading — full width, left-aligned */}
-          <div className="px-4 pt-0 pb-1">
+          <div className="px-4 pt-0 pb-1.5">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
-          </div>
-          {/* Row 3: New vault button */}
-          <div className="flex justify-start px-4 pb-2.5">
-            <NewVaultButton
-              showCreateForm={showCreateForm}
-              onOpenCreate={openCreate}
-              disabled={isOffline}
-            />
           </div>
         </div>
 
@@ -1241,18 +1237,18 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         <div className="shrink-0 space-y-2.5 py-0 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           {/* Mobile: search + Filter share one row. Desktop: search alone. */}
-          <div className="px-4 lg:px-6 flex items-center gap-2">
+          <div className="px-4 lg:px-6 flex items-center gap-1.5 lg:gap-0">
             <div className="relative flex items-center flex-1 min-w-0">
               <label htmlFor="feed-search" className="sr-only">Search memories</label>
-              <Search className="absolute left-3.5 size-4 text-white/40 pointer-events-none" aria-hidden />
+              <Search className="absolute left-2.5 lg:left-3.5 size-4 text-white/40 pointer-events-none" aria-hidden />
               <input
                 id="feed-search"
                 type="search"
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
-                placeholder="Search memories…"
+                placeholder="Search…"
                 className="w-full h-[42px] bg-white/[0.07] border border-white/[0.12] rounded-xl
-                           pl-9 pr-9 text-[16px] text-white/90 placeholder:text-white/35
+                           pl-8 pr-8 text-[16px] lg:pl-9 lg:pr-9 text-white/90 placeholder:text-white/35
                            outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
               />
               {rawSearch && (
@@ -1261,6 +1257,16 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                   <XIcon className="size-3" />
                 </button>
               )}
+            </div>
+
+            {/* MOBILE (<lg): + Vault, same row as search */}
+            <div className="lg:hidden">
+              <NewVaultButton
+                showCreateForm={showCreateForm}
+                onOpenCreate={openCreate}
+                disabled={isOffline}
+                compact
+              />
             </div>
 
             {/* MOBILE (<lg): compact Filter dropdown, same row as search */}
