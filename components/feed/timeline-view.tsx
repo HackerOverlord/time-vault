@@ -276,7 +276,7 @@ export const TimelineView = React.memo(function TimelineView({
           isVaultOwner={isVaultOwner}
           onLike={onLike}
           onDelete={postId => { onDelete(postId); setReelOpen(false) }}
-          onOpenComments={post => { setReelOpen(false); setViewedPost(post) }}
+          onCommentCountChange={onCommentCountChange}
         />
       )}
 

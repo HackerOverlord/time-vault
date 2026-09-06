@@ -23,7 +23,10 @@ import {
   Volume2, VolumeX, Maximize2, Heart, MessageCircle, Trash2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import type { Post } from "@/lib/types"
+import { toast } from "sonner"
+import { apiFetch } from "@/lib/api"
+import { CommentSheet } from "@/components/feed/feed-post"
+import type { Post, Comment } from "@/lib/types"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PHOTO_TEXT_DURATION_MS  = 5_000   // 5 s for photos and text memories
@@ -66,14 +69,14 @@ interface MemoryReelProps {
   isVaultOwner?:         boolean
   onLike?:               (id: string) => void
   onDelete?:             (id: string) => void
-  onOpenComments?:       (post: Post) => void
+  onCommentCountChange?: (id: string, delta: number) => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
 export function MemoryReel({
   posts, onExit,
   currentUserId, isVaultOwner = false,
-  onLike, onDelete, onOpenComments,
+  onLike, onDelete, onCommentCountChange,
 }: MemoryReelProps) {
   const sorted       = useMemo(() => sortChronological(posts), [posts])
   const reducedMotion = useReducedMotion()
@@ -92,6 +95,63 @@ export function MemoryReel({
   playingRef.current = playing
 
   const current = sorted[index] ?? null
+
+  // ── Comments — opened OVER the reel; the reel stays mounted. ───────────────
+  // State is keyed to the currently-shown post and reset on navigation, so
+  // index, playback and prev/next controls are all untouched.
+  const [showComments,    setShowComments]    = useState(false)
+  const [comments,        setComments]        = useState<Comment[]>([])
+  const [commentText,     setCommentText]     = useState("")
+  const [commentsLoaded,  setCommentsLoaded]  = useState(false)
+  const [commentsLoading, setCommentsLoading] = useState(false)
+  const [submitting,      setSubmitting]      = useState(false)
+  const commentBtnRef = useRef<HTMLButtonElement | null>(null)
+
+  // Reset comment state whenever the reel moves to a different memory.
+  useEffect(() => {
+    setShowComments(false)
+    setComments([])
+    setCommentText("")
+    setCommentsLoaded(false)
+  }, [index])
+
+  const loadComments = async () => {
+    if (!current || commentsLoaded) return
+    setCommentsLoading(true)
+    const result = await apiFetch<Comment[]>(`/api/posts/${current.id}/comments`)
+    setCommentsLoading(false)
+    if (result.ok) { setComments(result.data); setCommentsLoaded(true) }
+    else toast.error("Could not load comments")
+  }
+
+  const submitComment = async () => {
+    if (!current || !commentText.trim() || submitting) return
+    setSubmitting(true)
+    const result = await apiFetch<Comment>(`/api/posts/${current.id}/comments`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ body: commentText }),
+    })
+    if (result.ok) {
+      setComments(prev => [...prev, result.data])
+      setCommentText("")
+      onCommentCountChange?.(current.id, +1)
+    } else {
+      toast.error(result.error ?? "Could not post comment")
+    }
+    setSubmitting(false)
+  }
+
+  const deleteComment = async (commentId: string) => {
+    if (!current) return
+    const result = await apiFetch(`/api/comments/${commentId}`, { method: "DELETE" })
+    if (result.ok) {
+      setComments(prev => prev.filter(c => c.id !== commentId))
+      onCommentCountChange?.(current.id, -1)
+    } else {
+      toast.error(result.error ?? "Could not delete comment")
+    }
+  }
 
   // ── Fade-in on mount ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -322,7 +382,7 @@ export function MemoryReel({
              Mute lives in the reel's own control bar, so this group is the
              social family only: heart / comment / delete. Rendered only when
              the parent supplies handlers, so the reel degrades gracefully. */}
-        {current.is_unlocked && (onLike || onOpenComments || onDelete) && (
+        {current.is_unlocked && !showComments && (onLike || onCommentCountChange || onDelete) && (
           <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-4 z-20
                           lg:right-6 lg:mt-6
                           flex flex-col items-center gap-5 lg:gap-6">
@@ -344,9 +404,10 @@ export function MemoryReel({
               </button>
             )}
 
-            {onOpenComments && (
+            {onCommentCountChange && (
               <button
-                onClick={() => onOpenComments(current)}
+                ref={commentBtnRef}
+                onClick={() => { setShowComments(true); loadComments() }}
                 aria-label="Comments"
                 aria-haspopup="dialog"
                 className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
@@ -372,6 +433,25 @@ export function MemoryReel({
               </button>
             )}
           </div>
+        )}
+
+        {/* Comments — rendered OVER the reel. The reel stays mounted, so
+            index, prev/next and playback state are all preserved. */}
+        {showComments && current && (
+          <CommentSheet
+            comments={comments}
+            commentsLoading={commentsLoading}
+            commentsLoaded={commentsLoaded}
+            commentText={commentText}
+            submitting={submitting}
+            currentUserId={currentUserId}
+            isVaultOwner={isVaultOwner}
+            commentButtonRef={commentBtnRef}
+            onClose={() => setShowComments(false)}
+            onChangeText={setCommentText}
+            onSubmit={submitComment}
+            onDelete={deleteComment}
+          />
         )}
 
         {/* Caption overlay — stays on top of media */}

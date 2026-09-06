@@ -727,7 +727,7 @@ interface CommentSheetProps {
   onDelete: (id: string) => void
 }
 
-function CommentSheet({
+export function CommentSheet({
   comments, commentsLoading, commentsLoaded,
   commentText, submitting,
   currentUserId, isVaultOwner,
