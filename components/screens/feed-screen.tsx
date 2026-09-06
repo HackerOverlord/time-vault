@@ -1337,15 +1337,13 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           {showCreateForm && (
             <>
               <div className="lg:hidden fixed inset-0 z-40" onClick={closeCreate} aria-hidden />
-              <div className="lg:hidden absolute left-0 right-0 top-full z-50 px-4 pt-1.5">
-                <div className="rounded-xl border border-white/[0.10] shadow-2xl overflow-hidden"
-                     style={{ background: "rgba(10,10,12,0.97)", backdropFilter: "blur(12px)" }}>
-                  <CreateVaultForm
-                    open={showCreateForm}
-                    onCreated={handleVaultCreated}
-                    onClose={closeCreate}
-                  />
-                </div>
+              {/* Positioning only — CreateVaultForm owns its own dark rounded container. */}
+              <div className="lg:hidden absolute left-0 top-full z-50 px-4 pt-1.5">
+                <CreateVaultForm
+                  open={showCreateForm}
+                  onCreated={handleVaultCreated}
+                  onClose={closeCreate}
+                />
               </div>
             </>
           )}
