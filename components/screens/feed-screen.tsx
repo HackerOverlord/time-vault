@@ -1190,11 +1190,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
           </div>
 
           {/* Row 2: Heading — full width, left-aligned */}
-          <div className="px-4 pt-0 pb-2">
+          <div className="px-4 pt-0 pb-1">
             <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
           </div>
           {/* Row 3: New vault button */}
-          <div className="flex justify-start px-4 pb-4">
+          <div className="flex justify-start px-4 pb-2.5">
             <NewVaultButton
               showCreateForm={showCreateForm}
               onOpenCreate={openCreate}
@@ -1240,8 +1240,9 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         ═══════════════════════════════════════════════════════════════════ */}
         <div className="shrink-0 space-y-2.5 py-0 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
-          <div className="px-4 lg:px-6">
-            <div className="relative flex items-center">
+          {/* Mobile: search + Filter share one row. Desktop: search alone. */}
+          <div className="px-4 lg:px-6 flex items-center gap-2">
+            <div className="relative flex items-center flex-1 min-w-0">
               <label htmlFor="feed-search" className="sr-only">Search memories</label>
               <Search className="absolute left-3.5 size-4 text-white/40 pointer-events-none" aria-hidden />
               <input
@@ -1250,7 +1251,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search memories…"
-                className="w-full h-11 bg-white/[0.07] border border-white/[0.12] rounded-xl
+                className="w-full h-[42px] bg-white/[0.07] border border-white/[0.12] rounded-xl
                            pl-9 pr-9 text-[16px] text-white/90 placeholder:text-white/35
                            outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
               />
@@ -1261,27 +1262,25 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 </button>
               )}
             </div>
-          </div>
-          {/* MOBILE (<lg): compact Filter dropdown — saves ~40px of vertical space
-              so the Feed viewport is taller, Shorts-style. */}
-          <div className="lg:hidden px-4 pb-2">
+
+            {/* MOBILE (<lg): compact Filter dropdown, same row as search */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
                   aria-label="Filter memories by type"
                   className={cn(
-                    "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] font-semibold",
+                    "lg:hidden shrink-0 inline-flex items-center gap-1.5 px-3 h-[42px] rounded-xl text-[13px] font-semibold",
                     "transition-colors cursor-pointer",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                     feedFilter === "all"
-                      ? "bg-white/[0.08] text-white/70 hover:bg-white/[0.14]"
-                      : "bg-white/20 text-white"
+                      ? "bg-white/[0.07] border border-white/[0.12] text-white/70 hover:bg-white/[0.12]"
+                      : "bg-white/20 border border-white/20 text-white"
                   )}
                 >
                   <SlidersHorizontal className="size-3.5" aria-hidden />
                   {feedFilter === "all"
                     ? "Filter"
-                    : `Filter · ${FEED_FILTERS.find(f => f.value === feedFilter)?.label}`}
+                    : FEED_FILTERS.find(f => f.value === feedFilter)?.label}
                   <ChevronDown className="size-3.5 opacity-60" aria-hidden />
                 </button>
               </DropdownMenuTrigger>
