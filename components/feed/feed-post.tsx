@@ -329,7 +329,8 @@ function FeedPostInner({
   // Required DOM structure (spec):
   //   FeedPostCard (flex-col, h-full, rounded on mobile)
   //     MediaRegion (flex-1, min-h-0, relative)
-  //       media (video/img, object-contain mobile / object-cover lg)
+  //       media (video/img, object-contain at every breakpoint —
+  //       preserves the intrinsic aspect ratio, letterboxed as needed)
   //       scrim overlay
   //       mute button        ← INSIDE card, top-right of media
   //       like button        ← INSIDE card, right side of media
@@ -362,7 +363,7 @@ function FeedPostInner({
             muted={muted}
             playsInline
             preload={preload}
-            className="absolute inset-0 w-full h-full object-contain lg:object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
             onClick={() => setPlaying(p => !p)}
             aria-label={`${post.author_name}'s video in ${post.vault_name}`}
           />
@@ -373,7 +374,7 @@ function FeedPostInner({
           <img
             src={post.media_url}
             alt={post.caption ?? `${post.author_name}'s photo in ${post.vault_name}`}
-            className="absolute inset-0 w-full h-full object-contain lg:object-cover"
+            className="absolute inset-0 w-full h-full object-contain"
             loading={isActive ? "eager" : "lazy"}
             decoding="async"
             fetchPriority={isActive ? "high" : "low"}
