@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react"
 import { toast } from "sonner"
-import { Plus, Settings, LogOut, Image, Search, X as XIcon, Vault, LogIn, RefreshCw, WifiOff, AlertTriangle, LayoutList, Rows3, History, ChevronRight } from "lucide-react"
+import { Plus, Settings, LogOut, Image, Search, X as XIcon, Vault, LogIn, RefreshCw, WifiOff, AlertTriangle, LayoutList, Rows3, History, ChevronRight, ChevronDown, SlidersHorizontal } from "lucide-react"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import {
@@ -144,6 +144,15 @@ const VaultActionButtons = React.memo(function VaultActionButtons({
 })
 
 // ─── Main component ───────────────────────────────────────────────────────────
+// Shared by the mobile Filter dropdown and the desktop pill row.
+const FEED_FILTERS: { value: FeedFilter; label: string }[] = [
+  { value: "all",     label: "All" },
+  { value: "image",   label: "Photos" },
+  { value: "video",   label: "Videos" },
+  { value: "text",    label: "Text" },
+  { value: "capsule", label: "Capsules" },
+]
+
 export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
   const [posts, setPosts]                 = useState<Post[]>([])
   const [groups, setGroups]               = useState<Group[]>([])
@@ -1253,21 +1262,57 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               )}
             </div>
           </div>
+          {/* MOBILE (<lg): compact Filter dropdown — saves ~40px of vertical space
+              so the Feed viewport is taller, Shorts-style. */}
+          <div className="lg:hidden px-4 pb-2">
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label="Filter memories by type"
+                  className={cn(
+                    "inline-flex items-center gap-1.5 px-3 min-h-9 rounded-full text-[13px] font-semibold",
+                    "transition-colors cursor-pointer",
+                    "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
+                    feedFilter === "all"
+                      ? "bg-white/[0.08] text-white/70 hover:bg-white/[0.14]"
+                      : "bg-white/20 text-white"
+                  )}
+                >
+                  <SlidersHorizontal className="size-3.5" aria-hidden />
+                  {feedFilter === "all"
+                    ? "Filter"
+                    : `Filter · ${FEED_FILTERS.find(f => f.value === feedFilter)?.label}`}
+                  <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-40 border-white/10"
+                style={{ background: "oklch(0.14 0.02 260)" }}>
+                {FEED_FILTERS.map(({ value, label }) => (
+                  <DropdownMenuItem
+                    key={value}
+                    onClick={() => setFeedFilter(value)}
+                    className={cn(
+                      "cursor-pointer text-sm",
+                      feedFilter === value ? "text-white font-semibold" : "text-white/60"
+                    )}
+                  >
+                    {label}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </div>
+
+          {/* DESKTOP (lg+): existing horizontal pill row — unchanged */}
           <div role="group" aria-label="Media type filter"
-               className="pill-strip flex gap-2 px-4 lg:px-6 overflow-x-auto pb-3 lg:pb-0 lg:gap-1.5">
-            {([
-              { value: "all",     label: "All" },
-              { value: "image",   label: "Photos" },
-              { value: "video",   label: "Videos" },
-              { value: "text",    label: "Text" },
-              { value: "capsule", label: "Capsules" },
-            ] as { value: FeedFilter; label: string }[]).map(({ value, label }) => (
+               className="hidden lg:flex pill-strip gap-1.5 px-6 overflow-x-auto">
+            {FEED_FILTERS.map(({ value, label }) => (
               <button
                 key={value}
                 onClick={() => setFeedFilter(value)}
                 aria-pressed={feedFilter === value}
                 className={cn(
-                  "px-3 min-h-10 inline-flex items-center rounded-full text-sm font-semibold whitespace-nowrap lg:px-3 lg:min-h-8 lg:text-[11px]",
+                  "px-3 min-h-8 inline-flex items-center rounded-full text-[11px] font-semibold whitespace-nowrap",
                   "transition-all duration-150 cursor-pointer shrink-0",
                   "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
                   feedFilter === value
