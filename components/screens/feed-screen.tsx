@@ -56,7 +56,7 @@ const NewVaultButton = React.memo(function NewVaultButton({
         "inline-flex items-center transition-all cursor-pointer border",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
         compact
-          ? "shrink-0 gap-1 px-2.5 h-[42px] rounded-xl text-[13px] font-semibold"
+          ? "shrink-0 gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-semibold whitespace-nowrap"
           : "gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold",
         showCreateForm
           ? "bg-white/15 text-white border-white/20"
@@ -1234,26 +1234,27 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 pb-1.5 lg:pb-0 lg:space-y-2.5 border-b border-white/[0.04]"
+        <div className="shrink-0 pb-1 lg:pb-0 lg:space-y-2.5 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           {/* Mobile: search + Filter share one row. Desktop: search alone. */}
           <div className="px-4 lg:px-6 flex items-center gap-1.5 lg:gap-0">
             <div className="relative flex items-center flex-1 min-w-0">
               <label htmlFor="feed-search" className="sr-only">Search memories</label>
-              <Search className="absolute left-2.5 lg:left-3.5 size-4 text-white/40 pointer-events-none" aria-hidden />
+              <Search className="absolute left-1.5 lg:left-3.5 size-[15px] lg:size-4 text-white/40 pointer-events-none" aria-hidden />
               <input
                 id="feed-search"
                 type="search"
                 value={rawSearch}
                 onChange={e => handleSearchChange(e.target.value)}
                 placeholder="Search…"
-                className="w-full h-[42px] bg-white/[0.07] border border-white/[0.12] rounded-xl
-                           pl-8 pr-8 text-[16px] lg:pl-9 lg:pr-9 text-white/90 placeholder:text-white/35
-                           outline-none focus:border-primary/40 transition-colors lg:text-[13px] lg:h-9 lg:rounded-full"
+                className="w-full h-[31px] bg-white/[0.07] border border-white/[0.12] rounded-lg
+                           pl-6 pr-6 text-[12.5px] lg:pl-9 lg:pr-9 text-white/90 placeholder:text-white/35
+                           outline-none focus:border-primary/40 transition-colors
+                           lg:text-[13px] lg:h-9 lg:rounded-full"
               />
               {rawSearch && (
                 <button onClick={clearSearch} aria-label="Clear search"
-                        className="absolute right-2 flex items-center justify-center size-6 rounded-full text-white/40 hover:text-white/80 transition-colors cursor-pointer">
+                        className="absolute right-1 lg:right-2 flex items-center justify-center size-5 lg:size-6 rounded-full text-white/40 hover:text-white/80 transition-colors cursor-pointer">
                   <XIcon className="size-3" />
                 </button>
               )}
@@ -1275,7 +1276,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 <button
                   aria-label="Filter memories by type"
                   className={cn(
-                    "lg:hidden shrink-0 inline-flex items-center gap-1.5 px-3 h-[42px] rounded-xl text-[13px] font-semibold",
+                    "lg:hidden shrink-0 inline-flex items-center gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-semibold whitespace-nowrap",
                     "transition-colors cursor-pointer",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                     feedFilter === "all"
@@ -1287,7 +1288,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                   {feedFilter === "all"
                     ? "Filter"
                     : FEED_FILTERS.find(f => f.value === feedFilter)?.label}
-                  <ChevronDown className="size-3.5 opacity-60" aria-hidden />
+                  <ChevronDown className="size-3 opacity-60 -ml-0.5" aria-hidden />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-40 border-white/10"
