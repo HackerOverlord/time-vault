@@ -20,7 +20,7 @@ import React, {
 } from "react"
 import {
   X, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Maximize2,
+  Volume2, VolumeX, Maximize2, Heart, MessageCircle, Trash2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Post } from "@/lib/types"
@@ -61,10 +61,20 @@ function formatDate(iso: string): string {
 interface MemoryReelProps {
   posts:  Post[]
   onExit: () => void
+  /** Interaction wiring — same handlers Feed and Timeline already use. */
+  currentUserId?:        string
+  isVaultOwner?:         boolean
+  onLike?:               (id: string) => void
+  onDelete?:             (id: string) => void
+  onOpenComments?:       (post: Post) => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function MemoryReel({ posts, onExit }: MemoryReelProps) {
+export function MemoryReel({
+  posts, onExit,
+  currentUserId, isVaultOwner = false,
+  onLike, onDelete, onOpenComments,
+}: MemoryReelProps) {
   const sorted       = useMemo(() => sortChronological(posts), [posts])
   const reducedMotion = useReducedMotion()
 
@@ -308,6 +318,62 @@ export function MemoryReel({ posts, onExit }: MemoryReelProps) {
             else setPlaying(false)
           }}
         />
+        {/* ── Action stack — same hierarchy as Feed ──
+             Mute lives in the reel's own control bar, so this group is the
+             social family only: heart / comment / delete. Rendered only when
+             the parent supplies handlers, so the reel degrades gracefully. */}
+        {current.is_unlocked && (onLike || onOpenComments || onDelete) && (
+          <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-4 z-20
+                          lg:right-6 lg:mt-6
+                          flex flex-col items-center gap-5 lg:gap-6">
+            {onLike && (
+              <button
+                onClick={() => onLike(current.id)}
+                aria-label={current.has_liked ? "Unlike" : "Like"}
+                aria-pressed={current.has_liked}
+                className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
+                           rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
+              >
+                <Heart className={cn("size-6 transition-colors duration-150 drop-shadow",
+                  current.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
+                {(current.like_count ?? 0) > 0 && (
+                  <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
+                    {current.like_count ?? 0}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {onOpenComments && (
+              <button
+                onClick={() => onOpenComments(current)}
+                aria-label="Comments"
+                aria-haspopup="dialog"
+                className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
+                           rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
+              >
+                <MessageCircle className="size-6 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
+                {(current.comment_count ?? 0) > 0 && (
+                  <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
+                    {current.comment_count ?? 0}
+                  </span>
+                )}
+              </button>
+            )}
+
+            {onDelete && (currentUserId === current.author_id || isVaultOwner) && (
+              <button
+                onClick={() => confirm("Delete this post?") && onDelete(current.id)}
+                aria-label="Delete post"
+                className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
+                           rounded-full bg-black/25 hover:bg-black/40 transition-colors p-1.5"
+              >
+                <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
+              </button>
+            )}
+          </div>
+        )}
+
         {/* Caption overlay — stays on top of media */}
         {current.is_unlocked && current.caption && (
           <div className="absolute bottom-0 left-0 right-0

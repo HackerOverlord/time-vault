@@ -272,6 +272,11 @@ export const TimelineView = React.memo(function TimelineView({
         <MemoryReel
           posts={reelPosts}
           onExit={() => setReelOpen(false)}
+          currentUserId={currentUserId}
+          isVaultOwner={isVaultOwner}
+          onLike={onLike}
+          onDelete={postId => { onDelete(postId); setReelOpen(false) }}
+          onOpenComments={post => { setReelOpen(false); setViewedPost(post) }}
         />
       )}
 
@@ -499,7 +504,9 @@ function MemoryViewer({
       {/* FeedPost in "active" mode — enables media playback, likes, comments */}
       {/* flex-1 min-h-0 gives a definite height so FeedPost h-full resolves correctly */}
       <div className="flex-1 min-h-0 flex flex-col">
-        <div className="flex-1 min-h-0 max-w-md mx-auto w-full">
+        {/* max-w sized so portrait media fills the viewer height instead of
+            being capped at 448px. Landscape/square still centre with object-contain. */}
+        <div className="flex-1 min-h-0 w-full mx-auto max-w-[min(100vw,calc(100vh*0.6))] lg:max-w-[min(90vw,calc(100vh*0.62))]">
           <FeedPost
             post={post}
             isActive={true}
