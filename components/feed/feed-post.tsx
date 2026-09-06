@@ -422,27 +422,35 @@ function FeedPostInner({
           </span>
         </div>
 
-        {/* Right-side actions — mobile/tablet only; desktop uses overlay controls */}
-        <div className="absolute right-3 top-14 flex flex-col items-center gap-4 lg:right-6 lg:top-1/2 lg:-translate-y-1/2 lg:gap-6">
-          {/* Mute — video only */}
-          {post.media_type === "video" && (
-            <button
-              onClick={() => onMuteChange(!muted)}
-              aria-label={muted ? "Unmute" : "Mute"}
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-full
-                         bg-black/20 text-white/90 hover:text-white transition-colors cursor-pointer"
-            >
-              {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
-            </button>
-          )}
+        {/* ── Mute — independent media control, top-right of the media ──
+             Spatially separate from the social action group below. */}
+        {post.media_type === "video" && (
+          <button
+            onClick={() => onMuteChange(!muted)}
+            aria-label={muted ? "Unmute" : "Mute"}
+            className="absolute right-3 top-4 lg:right-6 lg:top-6 z-10
+                       flex min-h-11 min-w-11 items-center justify-center rounded-full
+                       bg-black/25 text-white/90 hover:text-white hover:bg-black/40
+                       transition-colors cursor-pointer"
+          >
+            {muted ? <VolumeX className="size-5" /> : <Volume2 className="size-5" />}
+          </button>
+        )}
 
+        {/* ── Social action group — heart / comment / delete ──
+             Centre-right on both breakpoints. -translate-y-1/2 centres the
+             group on the media; the small downward nudge keeps it clear of
+             the mute control above without crowding the metadata below. */}
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-4 z-10
+                        lg:right-6 lg:mt-6
+                        flex flex-col items-center gap-5 lg:gap-6">
           {/* Like */}
           <button
             onClick={() => onLike(post.id)}
             aria-label={post.has_liked ? "Unlike" : "Like"}
             aria-pressed={post.has_liked}
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/20 py-1.5 px-1.5"
+                       rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
           >
             <Heart className={cn("size-6 transition-colors duration-150 drop-shadow",
               post.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
@@ -460,7 +468,7 @@ function FeedPostInner({
             aria-label="Comments"
             aria-haspopup="dialog"
             className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                       rounded-full bg-black/20 py-1.5 px-1.5"
+                       rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
           >
             <MessageCircle className="size-6 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
             {(post.comment_count ?? 0) > 0 && (
@@ -476,7 +484,7 @@ function FeedPostInner({
               onClick={() => confirm("Delete this post?") && onDelete(post.id)}
               aria-label="Delete post"
               className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
-                         rounded-full bg-black/20 p-1.5"
+                         rounded-full bg-black/25 hover:bg-black/40 transition-colors p-1.5"
             >
               <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
             </button>
