@@ -56,7 +56,7 @@ const NewVaultButton = React.memo(function NewVaultButton({
         "inline-flex items-center transition-all cursor-pointer border",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 disabled:opacity-40 disabled:cursor-not-allowed",
         compact
-          ? "shrink-0 gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-semibold whitespace-nowrap"
+          ? "shrink-0 gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-normal text-white/70 whitespace-nowrap"
           : "gap-1.5 px-3 min-h-9 rounded-full text-sm font-semibold",
         showCreateForm
           ? "bg-white/15 text-white border-white/20"
@@ -1161,7 +1161,9 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                  style={{ height: "3.0rem" }}>
               <Logo scale={0.70} />
             </div>
-            <div className="flex items-center gap-2">
+            {/* mt-1.5 compensates for the logo overflowing its 3rem box:
+                flex centres on the box, not on the visible mark. */}
+            <div className="flex items-center gap-2 mt-1.5">
               <NotificationBell
                 triggerRef={mobileNotifBellRef}
                 unreadCount={unreadCount}
@@ -1278,11 +1280,11 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
                 <button
                   aria-label="Filter memories by type"
                   className={cn(
-                    "lg:hidden shrink-0 inline-flex items-center gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-semibold whitespace-nowrap",
+                    "lg:hidden shrink-0 inline-flex items-center gap-1 px-2 h-[33px] rounded-lg text-[12.5px] font-normal whitespace-nowrap",
                     "transition-colors cursor-pointer",
                     "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60",
                     feedFilter === "all"
-                      ? "bg-white/[0.07] border border-white/[0.12] text-white/70 hover:bg-white/[0.12]"
+                      ? "bg-white/[0.07] border border-white/[0.12] text-white/60 hover:bg-white/[0.12]"
                       : "bg-white/20 border border-white/20 text-white"
                   )}
                 >
