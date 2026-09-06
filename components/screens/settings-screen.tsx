@@ -517,7 +517,8 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
           >
             <h3 id={`${titleId}-delete`} className="text-white font-bold text-xl">Delete Account</h3>
             <p className="text-zinc-400 text-sm">
-              This permanently deletes your account, posts, and vault memberships.
+              This permanently deletes your account, posts, and vault memberships.{" "}
+              <span className="text-red-400 font-semibold">This cannot be undone.</span>
             </p>
             <div className="space-y-1.5">
               <Label htmlFor="delete-pwd-input" className="text-zinc-400 text-sm">Your password</Label>
