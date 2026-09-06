@@ -1152,12 +1152,14 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
              style={{ background: "rgba(0,0,0,0.90)" }}>
 
           {/* Row 1: Logo + notification + user */}
-          {/* scale=0.60 shrinks the full Logo to ~h-9 effective height, */}
-          {/* preserving the exact icon + TIME Vault wordmark + LEGACY SECURED */}
-          {/* tagline — identical to the desktop sidebar, just smaller. */}
-          <div className="flex items-center justify-between px-4 pt-1.5 pb-0.5">
-            <div className="overflow-visible shrink-0" style={{ height: "3.0rem" }}>
-              <Logo scale={0.60} />
+          {/* Logo at scale 0.70 (was 0.60) — ~17% larger, still the exact
+              icon + TIME Vault wordmark + LEGACY SECURED tagline.
+              Reduced left padding (px-3) and top padding (pt-0.5) keep the
+              row's total height unchanged despite the larger mark. */}
+          <div className="flex items-center justify-between pl-3 pr-4 pt-0.5 pb-0.5">
+            <div className="overflow-visible shrink-0 max-[380px]:scale-90 max-[380px]:origin-left"
+                 style={{ height: "3.0rem" }}>
+              <Logo scale={0.70} />
             </div>
             <div className="flex items-center gap-2">
               <NotificationBell
