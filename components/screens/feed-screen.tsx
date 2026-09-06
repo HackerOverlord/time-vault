@@ -1234,7 +1234,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 space-y-2.5 py-0 border-b border-white/[0.04]"
+        <div className="shrink-0 pb-1.5 lg:pb-0 lg:space-y-2.5 border-b border-white/[0.04]"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           {/* Mobile: search + Filter share one row. Desktop: search alone. */}
           <div className="px-4 lg:px-6 flex items-center gap-1.5 lg:gap-0">
