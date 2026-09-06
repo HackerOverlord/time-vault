@@ -424,8 +424,10 @@ function FeedPostInner({
         </div>
 
         {/* ── Mute — independent media control, top-right of the media ──
-             Spatially separate from the social action group below. */}
-        {post.media_type === "video" && (
+             Spatially separate from the social action group below.
+             Hidden while the comments sheet is open so it reads as the
+             foreground layer (also removes it from the tab order). */}
+        {post.media_type === "video" && !showComments && (
           <button
             onClick={() => onMuteChange(!muted)}
             aria-label={muted ? "Unmute" : "Mute"}
@@ -441,7 +443,9 @@ function FeedPostInner({
         {/* ── Social action group — heart / comment / delete ──
              Centre-right on both breakpoints. -translate-y-1/2 centres the
              group on the media; the small downward nudge keeps it clear of
-             the mute control above without crowding the metadata below. */}
+             the mute control above without crowding the metadata below.
+             Unmounted while comments are open. */}
+        {!showComments && (
         <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-4 z-10
                         lg:right-6 lg:mt-6
                         flex flex-col items-center gap-5 lg:gap-6">
@@ -491,6 +495,7 @@ function FeedPostInner({
             </button>
           )}
         </div>
+        )}
 
         {/* ── Bottom gradient overlay — author, caption, playback ── */}
         <div
