@@ -1234,7 +1234,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             one media-filter group. Outside both responsive header trees.
             px-4 lg:px-6 matches the header horizontal padding on each breakpoint.
         ═══════════════════════════════════════════════════════════════════ */}
-        <div className="shrink-0 pb-1 lg:pb-0 lg:space-y-2.5 border-b border-white/[0.04]"
+        <div className="shrink-0 pb-1 lg:pb-0 lg:space-y-2.5 border-b border-white/[0.04] relative z-30"
              style={{ background: "rgba(0,0,0,0.82)" }}>
           {/* Mobile: search + Filter share one row. Desktop: search alone. */}
           <div className="px-4 lg:px-6 flex items-center gap-1.5 lg:gap-0">
@@ -1330,6 +1330,25 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
               </button>
             ))}
           </div>
+
+          {/* MOBILE (<lg): create-vault form as an absolute overlay anchored
+              directly beneath this control row (top-full). It is removed from
+              normal flow, so opening it never shifts the Feed or the video. */}
+          {showCreateForm && (
+            <>
+              <div className="lg:hidden fixed inset-0 z-40" onClick={closeCreate} aria-hidden />
+              <div className="lg:hidden absolute left-0 right-0 top-full z-50 px-4 pt-1.5">
+                <div className="rounded-xl border border-white/[0.10] shadow-2xl overflow-hidden"
+                     style={{ background: "rgba(10,10,12,0.97)", backdropFilter: "blur(12px)" }}>
+                  <CreateVaultForm
+                    open={showCreateForm}
+                    onCreated={handleVaultCreated}
+                    onClose={closeCreate}
+                  />
+                </div>
+              </div>
+            </>
+          )}
         </div>
 
         {/* ═══════════════════════════════════════════════════════════════════
@@ -1340,8 +1359,10 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
             Focus restoration targets whichever button set createTriggerRef /
             joinTriggerRef — checked for visibility before focusing.
         ═══════════════════════════════════════════════════════════════════ */}
+        {/* DESKTOP (lg+) only: in-flow row, unchanged.
+            The mobile overlay lives inside the search/filter wrapper above. */}
         {showCreateForm && (
-          <div className="shrink-0 px-4 lg:px-6 py-2 border-b border-white/[0.05]"
+          <div className="hidden lg:block shrink-0 px-6 py-2 border-b border-white/[0.05]"
                style={{ background: "rgba(0,0,0,0.70)" }}>
             <CreateVaultForm
               open={showCreateForm}
