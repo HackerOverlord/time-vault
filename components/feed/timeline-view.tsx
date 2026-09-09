@@ -20,11 +20,14 @@
 import React, {
   useMemo, useRef, useCallback, useState, useEffect,
 } from "react"
-import { Calendar, Lock, Play, X, History, Clock, Clapperboard, Image } from "lucide-react"
+import { Calendar, Lock, Play, X, History, Clock, Clapperboard, Image , ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { FeedPost } from "@/components/feed/feed-post"
 import { CapsuleCard } from "@/components/feed/capsule-card"
 import { MemoryReel } from "@/components/feed/memory-reel"
+import {
+  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import {
   groupByYearMonth,
   extractYears,
@@ -126,10 +129,47 @@ export const TimelineView = React.memo(function TimelineView({
 
   return (
     <>
-      {/* ── Year quick-nav ─────────────────────────────────────────────────── */}
-      {/* ── Play Memories entry ─────────────────────────────────────────── */}
+      {/* ── Timeline toolbar: year dropdown (left) + Play memories (right) ── */}
       {posts.length > 0 && (
-        <div className="flex justify-end px-4 py-2 border-b border-white/[0.04] shrink-0">
+        <div className="flex items-center justify-between gap-2 px-4 py-2
+                        border-b border-white/[0.06] shrink-0">
+          {/* Year dropdown — jumps the scroll position to that year.
+              Years come from the existing `years` memo (newest-first). */}
+          {years.length > 0 ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <button
+                  aria-label={`Jump to year, currently ${activeYear ?? "none"}`}
+                  className="flex items-center gap-1 shrink-0 px-2.5 py-1.5 rounded-full
+                             text-sm font-bold bg-primary/20 text-primary
+                             hover:bg-primary/30 transition-colors cursor-pointer
+                             focus-visible:outline-none focus-visible:ring-2
+                             focus-visible:ring-primary/60"
+                >
+                  {activeYear ?? years[0]}
+                  <ChevronDown className="size-3.5 opacity-70" aria-hidden />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="start" className="w-32 border-white/10"
+                style={{ background: "oklch(0.14 0.02 260)" }}>
+                {years.map(year => (
+                  <DropdownMenuItem
+                    key={year}
+                    onClick={() => scrollToYear(year)}
+                    className={cn(
+                      "cursor-pointer text-sm",
+                      activeYear === year
+                        ? "text-primary font-semibold"
+                        : "text-white/60"
+                    )}
+                  >
+                    {year}
+                  </DropdownMenuItem>
+                ))}
+              </DropdownMenuContent>
+            </DropdownMenu>
+          ) : <span />}
+
           <button
             onClick={() => setReelOpen(true)}
             aria-label="Play memories as a reel"
@@ -143,30 +183,6 @@ export const TimelineView = React.memo(function TimelineView({
             Play memories
           </button>
         </div>
-      )}
-
-      {years.length > 0 && (
-        <nav aria-label="Jump to year"
-             className="flex gap-1 px-4 py-2 overflow-x-auto border-b border-white/[0.06]
-                        shrink-0"
-             style={{ scrollbarWidth: "none" }}>
-          {years.map(year => (
-            <button
-              key={year}
-              onClick={() => scrollToYear(year)}
-              aria-current={activeYear === year ? "true" : undefined}
-              className={cn(
-                "shrink-0 text-sm font-bold px-3 py-1.5 rounded-full transition-colors cursor-pointer",
-                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60",
-                activeYear === year
-                  ? "bg-primary/20 text-primary"
-                  : "text-white/40 hover:text-white/80 hover:bg-white/[0.06]"
-              )}
-            >
-              {year}
-            </button>
-          ))}
-        </nav>
       )}
 
       {/* ── Month sub-nav (for the active year) ─────────────────────────────── */}
