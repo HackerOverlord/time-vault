@@ -20,13 +20,10 @@ import React, {
 } from "react"
 import {
   X, ChevronLeft, ChevronRight, Play, Pause,
-  Volume2, VolumeX, Maximize2, Heart, MessageCircle, Trash2,
+  Maximize2,
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { toast } from "sonner"
-import { apiFetch } from "@/lib/api"
-import { CommentSheet } from "@/components/feed/feed-post"
-import type { Post, Comment } from "@/lib/types"
+import type { Post } from "@/lib/types"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const PHOTO_TEXT_DURATION_MS  = 5_000   // 5 s for photos and text memories
@@ -64,20 +61,10 @@ function formatDate(iso: string): string {
 interface MemoryReelProps {
   posts:  Post[]
   onExit: () => void
-  /** Interaction wiring — same handlers Feed and Timeline already use. */
-  currentUserId?:        string
-  isVaultOwner?:         boolean
-  onLike?:               (id: string) => void
-  onDelete?:             (id: string) => void
-  onCommentCountChange?: (id: string, delta: number) => void
 }
 
 // ── Component ─────────────────────────────────────────────────────────────────
-export function MemoryReel({
-  posts, onExit,
-  currentUserId, isVaultOwner = false,
-  onLike, onDelete, onCommentCountChange,
-}: MemoryReelProps) {
+export function MemoryReel({ posts, onExit }: MemoryReelProps) {
   const sorted       = useMemo(() => sortChronological(posts), [posts])
   const reducedMotion = useReducedMotion()
 
@@ -95,63 +82,6 @@ export function MemoryReel({
   playingRef.current = playing
 
   const current = sorted[index] ?? null
-
-  // ── Comments — opened OVER the reel; the reel stays mounted. ───────────────
-  // State is keyed to the currently-shown post and reset on navigation, so
-  // index, playback and prev/next controls are all untouched.
-  const [showComments,    setShowComments]    = useState(false)
-  const [comments,        setComments]        = useState<Comment[]>([])
-  const [commentText,     setCommentText]     = useState("")
-  const [commentsLoaded,  setCommentsLoaded]  = useState(false)
-  const [commentsLoading, setCommentsLoading] = useState(false)
-  const [submitting,      setSubmitting]      = useState(false)
-  const commentBtnRef = useRef<HTMLButtonElement | null>(null)
-
-  // Reset comment state whenever the reel moves to a different memory.
-  useEffect(() => {
-    setShowComments(false)
-    setComments([])
-    setCommentText("")
-    setCommentsLoaded(false)
-  }, [index])
-
-  const loadComments = async () => {
-    if (!current || commentsLoaded) return
-    setCommentsLoading(true)
-    const result = await apiFetch<Comment[]>(`/api/posts/${current.id}/comments`)
-    setCommentsLoading(false)
-    if (result.ok) { setComments(result.data); setCommentsLoaded(true) }
-    else toast.error("Could not load comments")
-  }
-
-  const submitComment = async () => {
-    if (!current || !commentText.trim() || submitting) return
-    setSubmitting(true)
-    const result = await apiFetch<Comment>(`/api/posts/${current.id}/comments`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ body: commentText }),
-    })
-    if (result.ok) {
-      setComments(prev => [...prev, result.data])
-      setCommentText("")
-      onCommentCountChange?.(current.id, +1)
-    } else {
-      toast.error(result.error ?? "Could not post comment")
-    }
-    setSubmitting(false)
-  }
-
-  const deleteComment = async (commentId: string) => {
-    if (!current) return
-    const result = await apiFetch(`/api/comments/${commentId}`, { method: "DELETE" })
-    if (result.ok) {
-      setComments(prev => prev.filter(c => c.id !== commentId))
-      onCommentCountChange?.(current.id, -1)
-    } else {
-      toast.error(result.error ?? "Could not delete comment")
-    }
-  }
 
   // ── Fade-in on mount ───────────────────────────────────────────────────────
   useEffect(() => {
@@ -341,19 +271,8 @@ export function MemoryReel({
             {current.is_unlocked && current.author_name && ` · ${current.author_name}`}
           </p>
         </div>
-        {/* Exit + music */}
+        {/* Exit */}
         <div className="flex items-center gap-2 shrink-0">
-          {/* Music toggle — wired but no track bundled */}
-          <button
-            onClick={toggleMusic}
-            aria-label={musicOn ? "Mute background music" : "Unmute background music"}
-            className="size-9 rounded-full bg-black/30 hover:bg-black/50 flex items-center
-                       justify-center cursor-pointer transition-colors"
-          >
-            {musicOn
-              ? <Volume2 className="size-4 text-white" />
-              : <VolumeX className="size-4 text-white/60" />}
-          </button>
           <button
             onClick={handleExit}
             aria-label="Exit memory reel"
@@ -378,82 +297,6 @@ export function MemoryReel({
             else setPlaying(false)
           }}
         />
-        {/* ── Action stack — same hierarchy as Feed ──
-             Mute lives in the reel's own control bar, so this group is the
-             social family only: heart / comment / delete. Rendered only when
-             the parent supplies handlers, so the reel degrades gracefully. */}
-        {current.is_unlocked && !showComments && (onLike || onCommentCountChange || onDelete) && (
-          <div className="absolute right-3 top-1/2 -translate-y-1/2 mt-4 z-20
-                          lg:right-6 lg:mt-6
-                          flex flex-col items-center gap-5 lg:gap-6">
-            {onLike && (
-              <button
-                onClick={() => onLike(current.id)}
-                aria-label={current.has_liked ? "Unlike" : "Like"}
-                aria-pressed={current.has_liked}
-                className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                           rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
-              >
-                <Heart className={cn("size-6 transition-colors duration-150 drop-shadow",
-                  current.has_liked ? "fill-red-500 text-red-500" : "text-white/90 group-hover:text-white")} />
-                {(current.like_count ?? 0) > 0 && (
-                  <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
-                    {current.like_count ?? 0}
-                  </span>
-                )}
-              </button>
-            )}
-
-            {onCommentCountChange && (
-              <button
-                ref={commentBtnRef}
-                onClick={() => { setShowComments(true); loadComments() }}
-                aria-label="Comments"
-                aria-haspopup="dialog"
-                className="flex flex-col items-center gap-1 cursor-pointer group min-h-11 min-w-11 justify-center
-                           rounded-full bg-black/25 hover:bg-black/40 transition-colors py-1.5 px-1.5"
-              >
-                <MessageCircle className="size-6 text-white/90 group-hover:text-white transition-colors duration-150 drop-shadow" />
-                {(current.comment_count ?? 0) > 0 && (
-                  <span className="text-white/80 text-[10px] font-semibold tabular-nums drop-shadow">
-                    {current.comment_count ?? 0}
-                  </span>
-                )}
-              </button>
-            )}
-
-            {onDelete && (currentUserId === current.author_id || isVaultOwner) && (
-              <button
-                onClick={() => confirm("Delete this post?") && onDelete(current.id)}
-                aria-label="Delete post"
-                className="flex min-h-11 min-w-11 items-center justify-center cursor-pointer group
-                           rounded-full bg-black/25 hover:bg-black/40 transition-colors p-1.5"
-              >
-                <Trash2 className="size-6 text-white/50 group-hover:text-red-400 transition-colors duration-150 drop-shadow" />
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Comments — rendered OVER the reel. The reel stays mounted, so
-            index, prev/next and playback state are all preserved. */}
-        {showComments && current && (
-          <CommentSheet
-            comments={comments}
-            commentsLoading={commentsLoading}
-            commentsLoaded={commentsLoaded}
-            commentText={commentText}
-            submitting={submitting}
-            currentUserId={currentUserId}
-            isVaultOwner={isVaultOwner}
-            commentButtonRef={commentBtnRef}
-            onClose={() => setShowComments(false)}
-            onChangeText={setCommentText}
-            onSubmit={submitComment}
-            onDelete={deleteComment}
-          />
-        )}
-
         {/* Caption overlay — stays on top of media */}
         {current.is_unlocked && current.caption && (
           <div className="absolute bottom-0 left-0 right-0
