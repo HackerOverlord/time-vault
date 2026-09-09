@@ -63,15 +63,39 @@ export const TimelineView = React.memo(function TimelineView({
 }: TimelineViewProps) {
   const today       = useMemo(() => new Date(), [])
   const yearGroups  = useMemo(() => groupByYearMonth(posts), [posts])
-  const years       = useMemo(() => extractYears(yearGroups), [yearGroups])
+  // extractYears follows groupByYearMonth's oldest-first order; the year
+  // filter lists newest-first, so sort descending here.
+  const years       = useMemo(
+    () => [...extractYears(yearGroups)].sort((a, b) => b - a),
+    [yearGroups]
+  )
   const onThisDay   = useMemo(() => getOnThisDayEntries(posts, today), [posts, today])
 
-  // ── Selected year for month sub-nav ──────────────────────────────────────
+  // ── Year filter — controls WHICH year groups render ──────────────────────
+  // Distinct from `activeYear` below, which only tracks scroll/month context.
+  // "all" renders every year; a number renders that year alone.
+  const [yearFilter, setYearFilter] = useState<"all" | number>("all")
+
+  // Drop a stale filter if its year disappears (e.g. the last post in it
+  // was deleted), so we never render an empty filtered Timeline.
+  useEffect(() => {
+    if (yearFilter !== "all" && !years.includes(yearFilter)) setYearFilter("all")
+  }, [years, yearFilter])
+
+  // Year groups actually rendered, after the filter.
+  const visibleYearGroups = useMemo(
+    () => yearFilter === "all" ? yearGroups : yearGroups.filter(g => g.year === yearFilter),
+    [yearGroups, yearFilter]
+  )
+
+  // ── Selected year for the month sub-nav (scroll context only) ────────────
   const [activeYear, setActiveYear] = useState<number | null>(null)
   useEffect(() => {
-    // Default to the most recent year
-    if (years.length > 0) setActiveYear(years[years.length - 1])
-  }, [years])
+    // While filtered, month nav always follows the filtered year.
+    if (yearFilter !== "all") { setActiveYear(yearFilter); return }
+    // Unfiltered: default to the newest year (years is newest-first).
+    if (years.length > 0) setActiveYear(years[0])
+  }, [years, yearFilter])
 
   // ── Viewer modal state ────────────────────────────────────────────────────
   const [viewedPost, setViewedPost] = useState<Post | null>(null)
@@ -79,15 +103,24 @@ export const TimelineView = React.memo(function TimelineView({
 
   // Playable posts: unlocked + have content. Locked placeholders still
   // appear in the reel (as locked cards) so we include all posts.
-  const reelPosts = useMemo(() => posts, [posts])
+  // Respects the year filter — never plays years the user has filtered out.
+  const reelPosts = useMemo(
+    () => yearFilter === "all"
+      ? posts
+      : posts.filter(p => new Date(p.posted_at ?? p.created_at).getFullYear() === yearFilter),
+    [posts, yearFilter]
+  )
 
   // ── Scroll refs: year-key → section element ───────────────────────────────
+  const scrollRef = useRef<HTMLDivElement | null>(null)
   const yearRefs  = useRef<Record<string, HTMLElement | null>>({})
   const monthRefs = useRef<Record<string, HTMLElement | null>>({})
 
-  const scrollToYear = useCallback((year: number) => {
-    setActiveYear(year)
-    yearRefs.current[String(year)]?.scrollIntoView({ behavior: "smooth", block: "start" })
+  // Changing the filter re-renders the list; scroll to the top so the user
+  // never lands mid-way through freshly-swapped content.
+  const selectYearFilter = useCallback((next: "all" | number) => {
+    setYearFilter(next)
+    scrollRef.current?.scrollTo({ top: 0, behavior: "auto" })
   }, [])
 
   const scrollToMonth = useCallback((key: string) => {
@@ -125,7 +158,9 @@ export const TimelineView = React.memo(function TimelineView({
   }
 
   // Active year's month group for sub-nav
-  const activeYearGroup = yearGroups.find(g => g.year === activeYear)
+  // Month sub-nav follows the filtered year when filtering, else activeYear.
+  const monthNavYear   = yearFilter === "all" ? activeYear : yearFilter
+  const activeYearGroup = yearGroups.find(g => g.year === monthNavYear)
 
   return (
     <>
@@ -133,34 +168,44 @@ export const TimelineView = React.memo(function TimelineView({
       {posts.length > 0 && (
         <div className="flex items-center justify-between gap-2 px-4 py-2
                         border-b border-white/[0.06] shrink-0">
-          {/* Year dropdown — jumps the scroll position to that year.
-              Years come from the existing `years` memo (newest-first). */}
+          {/* Year filter — "All" plus every year containing memories,
+              newest-first. Selecting an entry filters which year groups
+              render; it is not a scroll jump. */}
           {years.length > 0 ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button
-                  aria-label={`Jump to year, currently ${activeYear ?? "none"}`}
+                  aria-label={yearFilter === "all"
+                    ? "Filter by year, showing all years"
+                    : `Filter by year, showing ${yearFilter}`}
                   className="flex items-center gap-1 shrink-0 px-2.5 py-1.5 rounded-full
                              text-sm font-bold bg-primary/20 text-primary
                              hover:bg-primary/30 transition-colors cursor-pointer
                              focus-visible:outline-none focus-visible:ring-2
                              focus-visible:ring-primary/60"
                 >
-                  {activeYear ?? years[0]}
+                  {yearFilter === "all" ? "All" : yearFilter}
                   <ChevronDown className="size-3.5 opacity-70" aria-hidden />
                 </button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-32 border-white/10"
                 style={{ background: "oklch(0.14 0.02 260)" }}>
+                <DropdownMenuItem
+                  onClick={() => selectYearFilter("all")}
+                  className={cn(
+                    "cursor-pointer text-sm",
+                    yearFilter === "all" ? "text-primary font-semibold" : "text-white/60"
+                  )}
+                >
+                  All
+                </DropdownMenuItem>
                 {years.map(year => (
                   <DropdownMenuItem
                     key={year}
-                    onClick={() => scrollToYear(year)}
+                    onClick={() => selectYearFilter(year)}
                     className={cn(
                       "cursor-pointer text-sm",
-                      activeYear === year
-                        ? "text-primary font-semibold"
-                        : "text-white/60"
+                      yearFilter === year ? "text-primary font-semibold" : "text-white/60"
                     )}
                   >
                     {year}
@@ -187,7 +232,7 @@ export const TimelineView = React.memo(function TimelineView({
 
       {/* ── Month sub-nav (for the active year) ─────────────────────────────── */}
       {activeYearGroup && activeYearGroup.months.length > 1 && (
-        <nav aria-label={`Months in ${activeYear}`}
+        <nav aria-label={`Months in ${monthNavYear}`}
              className="flex gap-1 px-4 py-1.5 overflow-x-auto border-b border-white/[0.04]
                         shrink-0"
              style={{ scrollbarWidth: "none" }}>
@@ -207,7 +252,7 @@ export const TimelineView = React.memo(function TimelineView({
       )}
 
       {/* ── Scrollable content ──────────────────────────────────────────────── */}
-      <div className="overflow-y-auto flex-1 pb-24 lg:pb-24" style={{ scrollbarWidth: "thin", paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}>
+      <div ref={scrollRef} className="overflow-y-auto flex-1 pb-24 lg:pb-24" style={{ scrollbarWidth: "thin", paddingBottom: "calc(6rem + env(safe-area-inset-bottom, 0px))" }}>
 
         {/* ── On This Day ─────────────────────────────────────────────────── */}
         {onThisDay.length > 0 && (
@@ -237,7 +282,7 @@ export const TimelineView = React.memo(function TimelineView({
 
         {/* ── Year/Month groups ────────────────────────────────────────────── */}
         <div className="px-4 pt-5 space-y-10">
-          {yearGroups.map(yg => (
+          {visibleYearGroups.map(yg => (
             <section
               key={yg.year}
               aria-label={String(yg.year)}
