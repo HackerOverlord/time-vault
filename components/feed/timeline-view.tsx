@@ -355,11 +355,11 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
         <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent pointer-events-none" />
         <div className="absolute bottom-0 left-0 right-0 px-2 pb-2 pointer-events-none">
           {post.caption && (
-            <p className="text-white text-[9px] font-medium leading-tight line-clamp-2 mb-0.5">
+            <p className="text-white text-[12px] lg:text-[13px] font-medium leading-tight line-clamp-2 mb-0.5">
               {post.caption}
             </p>
           )}
-          <p className="text-white/50 text-[8px] font-mono">
+          <p className="text-white/50 text-[11px] lg:text-[12px] font-mono">
             {post.author_name} · {date}
           </p>
         </div>
@@ -416,11 +416,11 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
         )}
         <div className="absolute bottom-0 left-0 right-0 px-2 pb-2 pointer-events-none">
           {post.caption && (
-            <p className="text-white text-[9px] font-medium leading-tight line-clamp-2 mb-0.5">
+            <p className="text-white text-[12px] lg:text-[13px] font-medium leading-tight line-clamp-2 mb-0.5">
               {post.caption}
             </p>
           )}
-          <p className="text-white/50 text-[8px] font-mono">
+          <p className="text-white/50 text-[11px] lg:text-[12px] font-mono">
             {post.author_name} · {date}
           </p>
         </div>
@@ -439,11 +439,11 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
       style={{ aspectRatio: "4/3" }}
       aria-label={post.caption ?? `Text memory from ${date}`}
     >
-      <p className="text-white/85 text-[11px] leading-relaxed line-clamp-5 group-hover:text-white
+      <p className="text-white/85 text-[13px] lg:text-[14px] leading-relaxed line-clamp-5 group-hover:text-white
                     transition-colors flex-1">
         {post.caption ?? "—"}
       </p>
-      <p className="text-white/30 text-[8px] font-mono mt-2 shrink-0">
+      <p className="text-white/30 text-[11px] lg:text-[12px] font-mono mt-2 shrink-0">
         {post.author_name} · {date}
       </p>
     </button>

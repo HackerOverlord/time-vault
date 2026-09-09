@@ -242,15 +242,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
 
       {/* Header */}
       <div className="sticky top-0 z-50 border-b border-zinc-800 bg-background/80 backdrop-blur-md">
-        <div className="max-w-2xl mx-auto px-5 h-16 flex items-center gap-3 sm:gap-4">
-          {/* Brand anchor — the existing Logo component, scaled down to sit
-              inside the 64px header. Settings is full-width with no sidebar,
-              so this is the only branding on the screen (no duplication). */}
-          <div className="overflow-visible shrink-0 flex items-center"
-               style={{ height: "2.25rem" }}>
-            <Logo scale={0.45} />
-          </div>
-          <div className="h-4 w-px bg-zinc-800 shrink-0" aria-hidden />
+        <div className="max-w-2xl mx-auto px-5 h-16 flex items-center gap-4">
           <button
             onClick={() => onNavigate("feed")}
             aria-label="Back to feed"
@@ -265,6 +257,13 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
       </div>
 
       <div className="max-w-2xl mx-auto px-5 py-8">
+
+        {/* Brand anchor — the existing Logo, unmodified. Sits above the tabs
+            at the top-left of the content area so it reads as branding rather
+            than a navigation control. */}
+        <div className="overflow-visible mb-7 flex" aria-hidden>
+          <Logo />
+        </div>
 
         {/* Tab nav */}
         <div
