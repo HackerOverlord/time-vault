@@ -499,9 +499,10 @@ function MemoryViewer({
       {/* FeedPost in "active" mode — enables media playback, likes, comments */}
       {/* flex-1 min-h-0 gives a definite height so FeedPost h-full resolves correctly */}
       <div className="flex-1 min-h-0 flex flex-col">
-        {/* max-w sized so portrait media fills the viewer height instead of
-            being capped at 448px. Landscape/square still centre with object-contain. */}
-        <div className="flex-1 min-h-0 w-full mx-auto max-w-[min(100vw,calc(100vh*0.6))] lg:max-w-[min(90vw,calc(100vh*0.62))]">
+        {/* No fixed aspect on the wrapper — a portrait-shaped box left a large
+            black gap under landscape media. object-contain inside FeedPost
+            already fits any ratio, so the wrapper just fills the space. */}
+        <div className="flex-1 min-h-0 w-full mx-auto max-w-full lg:max-w-5xl">
           <FeedPost
             post={post}
             isActive={true}
