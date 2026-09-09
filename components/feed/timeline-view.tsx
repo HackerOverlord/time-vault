@@ -323,10 +323,9 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
   if (!post.is_unlocked) {
     return (
       <div
-        className="relative rounded-2xl overflow-hidden
+        className="relative rounded-2xl overflow-hidden aspect-[3/4] lg:aspect-[4/3]
                    border border-white/[0.08] bg-zinc-900/60
                    flex flex-col items-center justify-center gap-2 text-center p-3"
-        style={{ aspectRatio: "4/3" }}
         role="img"
         aria-label="Locked time capsule"
       >
@@ -345,10 +344,9 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
     return (
       <button
         onClick={onClick}
-        className="relative rounded-2xl overflow-hidden
+        className="relative rounded-2xl overflow-hidden aspect-[3/4] lg:aspect-[4/3]
                    border border-white/[0.06] bg-zinc-900 cursor-pointer group
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-        style={{ aspectRatio: "4/3" }}
         aria-label={post.caption ?? `Photo from ${date}`}
       >
         {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -388,10 +386,9 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
     return (
       <button
         onClick={onClick}
-        className="relative rounded-2xl overflow-hidden
+        className="relative rounded-2xl overflow-hidden aspect-[3/4] lg:aspect-[4/3]
                    border border-white/[0.06] bg-zinc-900 cursor-pointer group
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-        style={{ aspectRatio: "4/3" }}
         aria-label={post.caption ?? `Video from ${date}`}
       >
         {/* Video: preload=metadata loads first frame on most browsers */}
@@ -418,11 +415,11 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
         {/* Play overlay — lighter so frame shows through */}
         {post.media_url && (
           <div className="absolute inset-0 flex items-center justify-center
-                          pb-9 lg:pb-0
+                          pb-6 lg:pb-0
                           bg-black/20 group-hover:bg-black/10 transition-colors">
-            <div className="size-8 lg:size-9 rounded-full bg-black/50 backdrop-blur-sm
+            <div className="size-9 rounded-full bg-black/50 backdrop-blur-sm
                             flex items-center justify-center">
-              <Play className="size-3 lg:size-3.5 text-white fill-white ml-0.5" aria-hidden />
+              <Play className="size-3.5 text-white fill-white ml-0.5" aria-hidden />
             </div>
           </div>
         )}
@@ -449,11 +446,10 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
   return (
     <button
       onClick={onClick}
-      className="relative rounded-2xl overflow-hidden border border-white/[0.06]
+      className="relative rounded-2xl overflow-hidden aspect-[3/4] lg:aspect-[4/3] border border-white/[0.06]
                  bg-zinc-900/80 p-3 cursor-pointer group text-left
                  hover:bg-zinc-800/80 transition-colors flex flex-col justify-between
                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
-      style={{ aspectRatio: "4/3" }}
       aria-label={post.caption ?? `Text memory from ${date}`}
     >
       <p className="text-white/85 text-[13px] lg:text-[14px] leading-relaxed line-clamp-5 group-hover:text-white
