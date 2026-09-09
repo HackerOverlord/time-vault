@@ -418,10 +418,11 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
         {/* Play overlay — lighter so frame shows through */}
         {post.media_url && (
           <div className="absolute inset-0 flex items-center justify-center
+                          pb-9 lg:pb-0
                           bg-black/20 group-hover:bg-black/10 transition-colors">
-            <div className="size-9 rounded-full bg-black/50 backdrop-blur-sm
+            <div className="size-8 lg:size-9 rounded-full bg-black/50 backdrop-blur-sm
                             flex items-center justify-center">
-              <Play className="size-3.5 text-white fill-white ml-0.5" aria-hidden />
+              <Play className="size-3 lg:size-3.5 text-white fill-white ml-0.5" aria-hidden />
             </div>
           </div>
         )}
