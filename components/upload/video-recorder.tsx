@@ -80,6 +80,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
 
   const liveVideoRef  = useRef<HTMLVideoElement>(null)
   const streamRef     = useRef<MediaStream | null>(null)
+  const reviewBlobRef = useRef<Blob | null>(null)   // the finished recording
   const recorderRef   = useRef<MediaRecorder | null>(null)
   const chunksRef     = useRef<BlobPart[]>([])
   const timerRef      = useRef<ReturnType<typeof setInterval> | null>(null)
@@ -139,12 +140,6 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
       // Device list is only complete once permission is granted.
       countCameras().then(n => setCanSwitch(n > 1))
       // Attach stream to live preview
-      requestAnimationFrame(() => {
-        if (liveVideoRef.current) {
-          liveVideoRef.current.srcObject = stream
-          liveVideoRef.current.play().catch(() => {})
-        }
-      })
     } catch (err: unknown) {
       const name = (err as { name?: string }).name ?? ""
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
@@ -159,6 +154,19 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
       setState("error")
     }
   }, [])
+
+  // ── Attach the camera to the live preview once the <video> is on screen ───
+  // (Done after render, not in a requestAnimationFrame: on first use the frame
+  // could fire before React had mounted the element, leaving a blank preview
+  // while still recording.)
+  useEffect(() => {
+    const el = liveVideoRef.current
+    const stream = streamRef.current
+    if ((state === "previewing" || state === "recording") && el && stream && el.srcObject !== stream) {
+      el.srcObject = stream
+      el.play().catch(() => {})
+    }
+  }, [state, facing])
 
   // ── Switch front/back camera (only between recordings) ───────────────────
   const switchCamera = useCallback(() => {
@@ -206,6 +214,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
         setState("review")
       }
 
+      reviewBlobRef.current = blob
       const url = URL.createObjectURL(blob)
       const dur = Math.round((Date.now() - startTimeRef.current) / 1000)
       setReviewUrl(url)
@@ -244,6 +253,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
   // ── Retake ─────────────────────────────────────────────────────────────────
   const retake = useCallback(() => {
     cleanup()
+    reviewBlobRef.current = null
     if (reviewUrl) { URL.revokeObjectURL(reviewUrl); setReviewUrl(null) }
     setReviewDur(0)
     setSizeError(null)
@@ -258,12 +268,11 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
     // Convert Blob → File so UploadModal's onFile-equivalent treats it as a video file.
     // Extension derived from MIME: webm → .webm, mp4 → .mp4.
     const ext  = mime.includes("mp4") ? "mp4" : "webm"
-    fetch(reviewUrl)
-      .then(r => r.blob())
-      .then(blob => {
-        const file = new File([blob], `recording.${ext}`, { type: mime })
-        onUseVideo(file)
-      })
+    // Build the File from the Blob we already hold. (Fetching the blob: URL
+    // was blocked by the Content-Security-Policy, so this button did nothing.)
+    const blob = reviewBlobRef.current
+    if (!blob) return
+    onUseVideo(new File([blob], `recording.${ext}`, { type: mime }))
   }, [reviewUrl, sizeError, onUseVideo])
 
   // ── Switch to file picker ──────────────────────────────────────────────────

@@ -110,12 +110,6 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
       setState("previewing")
       // Device list is only complete once permission is granted.
       countCameras().then(n => setCanSwitch(n > 1))
-      requestAnimationFrame(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream
-          videoRef.current.play().catch(() => {})
-        }
-      })
     } catch (err: unknown) {
       const name = (err as { name?: string }).name ?? ""
       if (name === "NotAllowedError" || name === "PermissionDeniedError") {
@@ -130,6 +124,16 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
       setState("error")
     }
   }, [])
+
+  // ── Attach the camera to the preview once the <video> is on screen ───────
+  useEffect(() => {
+    const el = videoRef.current
+    const stream = streamRef.current
+    if (state === "previewing" && el && stream && el.srcObject !== stream) {
+      el.srcObject = stream
+      el.play().catch(() => {})
+    }
+  }, [state, facingFront])
 
   // ── Switch camera facing ──────────────────────────────────────────────────
   const switchCamera = useCallback(() => {
