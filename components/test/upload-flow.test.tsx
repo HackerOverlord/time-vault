@@ -279,3 +279,51 @@ describe('UploadModal — unlock_at date field', () => {
     expect(await screen.findByRole('alert')).toBeInTheDocument()
   })
 })
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Share button only appears once there is something to share
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe('UploadModal — Share button visibility', () => {
+  beforeEach(() => {
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:preview'), revokeObjectURL: vi.fn() })
+  })
+  afterEach(() => { vi.unstubAllGlobals() })
+
+  const shareBtn = () => screen.queryByRole('button', { name: /share now|lock and schedule/i })
+
+  it('is hidden on the photo camera step', async () => {
+    const user = userEvent.setup()
+    render(<UploadModal {...BASE_PROPS} />)
+    await user.click(screen.getByRole('button', { name: /share a photo/i }))
+    expect(screen.getByRole('button', { name: /choose photo file/i })).toBeInTheDocument()
+    expect(shareBtn()).not.toBeInTheDocument()
+  })
+
+  it('is hidden on the video recorder step', async () => {
+    const user = userEvent.setup()
+    render(<UploadModal {...BASE_PROPS} />)
+    await user.click(screen.getByRole('button', { name: /share a video/i }))
+    expect(screen.getByRole('button', { name: /choose video file/i })).toBeInTheDocument()
+    expect(shareBtn()).not.toBeInTheDocument()
+  })
+
+  it('appears once a photo is chosen (compose step)', async () => {
+    const user = userEvent.setup()
+    render(<UploadModal {...BASE_PROPS} />)
+    await chooseFile(user, 'image')
+    expect(shareBtn()).toBeInTheDocument()
+  })
+
+  it('appears for text posts', async () => {
+    const user = userEvent.setup()
+    render(<UploadModal {...BASE_PROPS} />)
+    await pickText(user)
+    expect(shareBtn()).toBeInTheDocument()
+  })
+
+  it('the first screen still offers Cancel', () => {
+    render(<UploadModal {...BASE_PROPS} />)
+    expect(screen.getByRole('button', { name: /cancel and close/i })).toBeInTheDocument()
+  })
+})

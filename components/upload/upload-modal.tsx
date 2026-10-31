@@ -585,7 +585,10 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
           )}
         </div>
 
-        {/* Footer */}
+        {/* Footer — not shown on the camera/recorder steps: those have their own
+            primary action (Capture / Record), and there's nothing to share yet.
+            The header ✕ still closes the sheet. */}
+        {(step === "pick" || step === "compose") && (
         <div className="px-6 pb-6 pt-4 border-t border-zinc-800 space-y-3">
           {/* Inline error — shown above the button so it's visible before submitting */}
           {postError && (
@@ -636,6 +639,7 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
             </>
           )}
         </div>
+        )}
       </div>
     </div>
   )
