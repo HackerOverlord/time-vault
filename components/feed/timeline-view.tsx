@@ -22,6 +22,7 @@ import React, {
 } from "react"
 import { Calendar, Lock, Play, X, History, Clock, Clapperboard, Image , ChevronDown } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { getCountdown, formatUnlockDate } from "@/lib/countdown"
 import { FeedPost } from "@/components/feed/feed-post"
 import { CapsuleCard } from "@/components/feed/capsule-card"
 import { MemoryReel } from "@/components/feed/memory-reel"
@@ -374,12 +375,21 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
         role="img"
         aria-label="Locked time capsule"
       >
-        <Lock className="size-5 text-white/25" aria-hidden />
-        <p className="text-[9px] text-white/40 font-semibold leading-tight">{post.vault_name}</p>
-        {post.author_name && (
-          <p className="text-[8px] text-white/25 leading-tight">{post.author_name}</p>
+        <Lock className="size-6 text-white/40" aria-hidden />
+        {post.unlock_at && (
+          <>
+            <p className="text-sm text-white/80 font-semibold leading-tight">
+              {(() => {
+                const c = getCountdown(post.unlock_at)
+                return c.isPast ? c.label : `Opens in ${c.label}`
+              })()}
+            </p>
+            <p className="text-xs text-white/50 leading-tight">{formatUnlockDate(post.unlock_at)}</p>
+          </>
         )}
-        <p className="text-[8px] text-white/20 leading-tight font-mono">{date}</p>
+        <p className="text-xs text-white/40 leading-tight mt-1">
+          {post.vault_name}{post.author_name ? ` · ${post.author_name}` : ""}
+        </p>
       </div>
     )
   }
