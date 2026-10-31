@@ -62,3 +62,14 @@ export function formatUnlockDate(unlockAt: string): string {
     year:  "numeric",
   })
 }
+
+/**
+ * Local-timezone calendar date as YYYY-MM-DD, offset by `daysFromToday`.
+ * Unlike toISOString(), this never rolls over early for users west of UTC.
+ */
+export function localISODate(daysFromToday = 0, now: Date = new Date()): string {
+  const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() + daysFromToday)
+  const mm = String(d.getMonth() + 1).padStart(2, "0")
+  const dd = String(d.getDate()).padStart(2, "0")
+  return `${d.getFullYear()}-${mm}-${dd}`
+}

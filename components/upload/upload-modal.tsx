@@ -10,6 +10,7 @@ import { apiFetch, tok, API as API_BASE } from "@/lib/api"
 import { VideoRecorder } from "@/components/upload/video-recorder"
 import { PhotoCapture } from "@/components/upload/photo-capture"
 import type { Group, Post } from "@/lib/types"
+import { localISODate } from "@/lib/countdown"
 
 // ── Constants derived from backend configuration ──────────────────────────────
 // Backend: _MAX_MEDIA_URL_BYTES = 7 * 1024 * 1024 (base64 ceiling for a 5 MB file)
@@ -93,8 +94,10 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
   // Track whether we have focus so cleanup can be precise
   const hasFocusRef = useRef(false)
 
-  // Tomorrow's date string for the unlock-date min attribute
-  const tomorrowISO = new Date(Date.now() + 86_400_000).toISOString().split("T")[0]
+  // Tomorrow in the user's LOCAL timezone (YYYY-MM-DD) for the date input min.
+  // toISOString() would give UTC, which is already "tomorrow" in the evening
+  // for users west of UTC, pushing the earliest allowed date out a day.
+  const tomorrowISO = localISODate(1)
 
   // ── Focus: move into modal on open ─────────────────────────────────────────
   useEffect(() => {
@@ -209,7 +212,7 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
       return `Caption must be ${MAX_CAPTION_LEN} characters or fewer.`
     if (isTimeCapsule && !unlockDate)
       return "Choose an unlock date for the time capsule."
-    if (isTimeCapsule && unlockDate && unlockDate <= tomorrowISO) {
+    if (isTimeCapsule && unlockDate && unlockDate < tomorrowISO) {
       // Belt-and-braces: the date input min already prevents this, but guard anyway
       return "Unlock date must be at least tomorrow."
     }
@@ -227,7 +230,8 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
         const result = await apiFetch<Post>(`/api/vaults/${selectedGroupId}/posts`, {
           method: "POST", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ caption: caption.trim() || null, media_type: "text",
-            unlock_at: isTimeCapsule && unlockDate ? unlockDate : null }),
+            unlock_at: isTimeCapsule && unlockDate ? unlockDate : null,
+            tz_offset_minutes: new Date().getTimezoneOffset() }),
         })
         if (result.ok) {
           if (previewUrlRef.current) { URL.revokeObjectURL(previewUrlRef.current); setPreview(null) }
@@ -242,6 +246,7 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
       form.append("media_type", mediaType)
       form.append("caption", caption.trim())
       if (isTimeCapsule && unlockDate) form.append("unlock_at", unlockDate)
+      form.append("tz_offset_minutes", String(new Date().getTimezoneOffset()))
       const xhr = new XMLHttpRequest()
       xhrRef.current = xhr
       xhr.upload.addEventListener("progress", e => {
