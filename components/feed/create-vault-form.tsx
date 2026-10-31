@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useRef, useEffect } from "react"
+import { useState, useRef, useEffect, useId } from "react"
 import { Check, X as XIcon, AlertCircle } from "lucide-react"
 import { toast } from "sonner"
 import { apiFetch } from "@/lib/api"
@@ -27,6 +27,15 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
   const [loading,    setLoading]    = useState(false)
   const [error,      setError]      = useState<string | null>(null)
   const inputRef = useRef<HTMLInputElement>(null)
+  // FeedScreen mounts this form twice (mobile + desktop layouts). Unique ids
+  // keep the two radio groups and label/input pairs from colliding.
+  const uid = useId()
+  const ids = {
+    radio: `vault-type-${uid}`,
+    name:  `create-vault-name-${uid}`,
+    email: `create-vault-child-email-${uid}`,
+    error: `create-vault-error-${uid}`,
+  }
 
   useEffect(() => {
     if (open) {
@@ -68,7 +77,8 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
   }
 
   return (
-    <div className="space-y-3 bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 w-72">
+    <div className="space-y-3 bg-zinc-900 border border-zinc-700 rounded-2xl px-4 py-3 w-72"
+         onKeyDown={e => { if (e.key === "Escape" && !loading) onClose() }}>
       {/* Vault type selector */}
       <fieldset>
         <legend className="sr-only">Vault type</legend>
@@ -77,7 +87,7 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
             <label key={type} className="flex items-center gap-2 cursor-pointer text-sm text-white/80 select-none">
               <input
                 type="radio"
-                name="vault-type"
+                name={ids.radio}
                 value={type}
                 checked={vaultType === type}
                 onChange={() => { setVaultType(type); setError(null) }}
@@ -92,10 +102,10 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
 
       {/* Vault name */}
       <div>
-        <label htmlFor="create-vault-name-input" className="sr-only">Vault name</label>
+        <label htmlFor={ids.name} className="sr-only">Vault name</label>
         <input
           ref={inputRef}
-          id="create-vault-name-input"
+          id={ids.name}
           value={name}
           onChange={e => { setName(e.target.value); setError(null) }}
           onKeyDown={e => { if (e.key === "Enter") create() }}
@@ -103,7 +113,7 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
           maxLength={50}
           disabled={loading}
           aria-invalid={error ? "true" : undefined}
-          aria-describedby={error ? "create-vault-error" : undefined}
+          aria-describedby={error ? ids.error : undefined}
           className="w-full bg-transparent border border-zinc-700 rounded-xl px-3 py-2
                      text-white text-sm outline-none placeholder:text-zinc-500
                      focus:border-primary/50 disabled:opacity-60"
@@ -113,9 +123,9 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
       {/* Child email — only shown for child vault type */}
       {vaultType === "child" && (
         <div>
-          <label htmlFor="create-vault-child-email" className="sr-only">Child email</label>
+          <label htmlFor={ids.email} className="sr-only">Child email</label>
           <input
-            id="create-vault-child-email"
+            id={ids.email}
             type="email"
             value={childEmail}
             onChange={e => { setChildEmail(e.target.value); setError(null) }}
@@ -158,7 +168,7 @@ export function CreateVaultForm({ open, onCreated, onClose }: CreateVaultFormPro
       </div>
 
       {error && (
-        <p id="create-vault-error" role="alert"
+        <p id={ids.error} role="alert"
            className="flex items-center gap-1.5 text-xs text-red-400">
           <AlertCircle className="size-3 shrink-0" aria-hidden />
           {error}

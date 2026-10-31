@@ -163,3 +163,31 @@ describe('CreateVaultForm — child vault', () => {
     expect(body.child_email).toBeUndefined()
   })
 })
+
+// ── Two mounted copies (FeedScreen renders mobile + desktop) ──────────────────
+
+describe('CreateVaultForm — two copies on the page', () => {
+  it('radio groups and ids do not collide', async () => {
+    const user = userEvent.setup()
+    render(<>
+      <CreateVaultForm open onCreated={vi.fn()} onClose={vi.fn()} />
+      <CreateVaultForm open onCreated={vi.fn()} onClose={vi.fn()} />
+    </>)
+    const childRadios = screen.getAllByRole('radio', { name: /child vault/i })
+    const familyRadios = screen.getAllByRole('radio', { name: /family vault/i })
+    await user.click(childRadios[1])
+
+    expect(childRadios[1]).toBeChecked()      // the clicked copy shows its choice
+    expect(familyRadios[0]).toBeChecked()     // the other copy is unaffected
+    const nameInputs = screen.getAllByLabelText(/vault name/i)
+    expect(nameInputs[0].id).not.toBe(nameInputs[1].id)
+  })
+
+  it('Escape closes the form', async () => {
+    const user = userEvent.setup()
+    const onClose = vi.fn()
+    render(<CreateVaultForm open onCreated={vi.fn()} onClose={onClose} />)
+    await user.type(screen.getByLabelText(/vault name/i), 'x{Escape}')
+    expect(onClose).toHaveBeenCalled()
+  })
+})
