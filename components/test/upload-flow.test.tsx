@@ -327,3 +327,15 @@ describe('UploadModal — Share button visibility', () => {
     expect(screen.getByRole('button', { name: /cancel and close/i })).toBeInTheDocument()
   })
 })
+
+describe('UploadModal — type picker', () => {
+  it('does not pre-select any option when the sheet opens', () => {
+    render(<UploadModal {...BASE_PROPS} />)
+    for (const name of [/share a video/i, /share a photo/i, /share a text/i]) {
+      const cls = screen.getByRole('button', { name }).classList
+      // "selected" styling would be the bare tokens; hover:/active: variants are fine
+      expect(cls.contains('border-primary')).toBe(false)
+      expect(cls.contains('text-primary')).toBe(false)
+    }
+  })
+})

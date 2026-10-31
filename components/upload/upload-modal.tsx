@@ -379,11 +379,14 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
                       else if (type === "image") { setMediaType("image"); setStep("capture") }
                       else { intendedTypeRef.current = "image"; fileRef.current?.click() }
                     }}
+                    // Nothing is pre-selected: tapping an option goes straight to its
+                    // next step, so a highlighted default would only mislead.
                     className={cn(
                       "flex flex-col items-center gap-2 py-5 rounded-2xl border transition-all cursor-pointer min-h-[72px]",
-                      mediaType === type
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-zinc-800 bg-zinc-800/30 text-zinc-400 hover:border-zinc-600 hover:text-white"
+                      "border-zinc-800 bg-zinc-800/30 text-zinc-400",
+                      "hover:border-primary/60 hover:bg-primary/10 hover:text-primary",
+                      "active:border-primary active:bg-primary/15 active:text-primary",
+                      "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
                     )}
                   >
                     <Icon className="size-6" />
