@@ -97,7 +97,10 @@ export default function App() {
   if (!screen) return null
 
   return (
-    <div className="min-h-screen bg-background text-foreground antialiased">
+    // 100dvh (visible viewport), not 100vh: on mobile, 100vh includes the
+    // browser's address bar, which made the page scroll and the feed's
+    // bottom nav slide up off the bottom edge.
+    <div className="min-h-[100dvh] bg-background text-foreground antialiased">
       {screen === "login"    && <LoginScreen    onNavigate={navigate} />}
       {screen === "register" && <RegisterScreen onNavigate={navigate} />}
       {screen === "forgot"   && <ForgotPasswordScreen onNavigate={navigate} />}
