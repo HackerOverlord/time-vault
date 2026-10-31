@@ -62,7 +62,16 @@ export function LoginScreen({ onNavigate }: LoginScreenProps) {
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="login-password" className="text-zinc-400 text-sm">Password</Label>
+            <div className="flex items-center justify-between">
+              <Label htmlFor="login-password" className="text-zinc-400 text-sm">Password</Label>
+              <button
+                type="button"
+                onClick={() => onNavigate("forgot")}
+                className="text-primary text-sm hover:underline cursor-pointer"
+              >
+                Forgot password?
+              </button>
+            </div>
             <Input
               id="login-password"
               type="password"
