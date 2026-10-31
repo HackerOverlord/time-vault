@@ -371,23 +371,23 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
       <div
         className="relative rounded-2xl overflow-hidden aspect-[3/4] lg:aspect-[4/3]
                    border border-white/[0.08] bg-zinc-900/60
-                   flex flex-col items-center justify-center gap-2 text-center p-3"
+                   flex flex-col items-center justify-center gap-1 sm:gap-2 text-center p-2 sm:p-3"
         role="img"
         aria-label="Locked time capsule"
       >
-        <Lock className="size-6 text-white/40" aria-hidden />
+        <Lock className="size-4 sm:size-6 text-white/40 shrink-0" aria-hidden />
         {post.unlock_at && (
           <>
-            <p className="text-sm text-white/80 font-semibold leading-tight">
+            <p className="text-[12px] sm:text-sm text-white/80 font-semibold leading-tight">
               {(() => {
                 const c = getCountdown(post.unlock_at)
                 return c.isPast ? c.label : `Opens in ${c.label}`
               })()}
             </p>
-            <p className="text-xs text-white/50 leading-tight">{formatUnlockDate(post.unlock_at)}</p>
+            <p className="text-[10px] sm:text-xs text-white/50 leading-tight">{formatUnlockDate(post.unlock_at)}</p>
           </>
         )}
-        <p className="text-xs text-white/40 leading-tight mt-1">
+        <p className="text-[10px] sm:text-xs text-white/40 leading-tight mt-1 line-clamp-2 sm:line-clamp-none max-w-full">
           {post.vault_name}{post.author_name ? ` · ${post.author_name}` : ""}
         </p>
       </div>
@@ -509,11 +509,13 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
                  focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
       aria-label={post.caption ?? `Text memory from ${date}`}
     >
-      <p className="text-white/85 text-[13px] lg:text-[14px] leading-relaxed line-clamp-5 group-hover:text-white
-                    transition-colors flex-1">
+      {/* Phones get 3-column tiles ~110px wide: clamp to 3 lines there so the
+          text ends with "…" instead of being sliced mid-line. */}
+      <p className="text-white/85 text-[12px] sm:text-[13px] lg:text-[14px] leading-snug sm:leading-relaxed
+                    line-clamp-3 sm:line-clamp-4 lg:line-clamp-5 group-hover:text-white transition-colors">
         {post.caption ?? "—"}
       </p>
-      <p className="text-white/30 text-[11px] lg:text-[12px] font-mono mt-2 shrink-0">
+      <p className="text-white/30 text-[10px] sm:text-[11px] lg:text-[12px] font-mono mt-2 shrink-0 line-clamp-2">
         {post.author_name} · {date}
       </p>
     </button>

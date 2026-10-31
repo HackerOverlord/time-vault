@@ -20,8 +20,9 @@
  *  cleanup when the modal unmounts before the user finishes.
  */
 import { useState, useRef, useEffect, useCallback } from "react"
-import { Video, StopCircle, RotateCcw, Check, AlertCircle, Loader2, Folder } from "lucide-react"
+import { Video, StopCircle, RotateCcw, Check, AlertCircle, Loader2, Folder, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { countCameras, otherFacing, type Facing } from "@/lib/camera"
 
 // ── Recording limits ──────────────────────────────────────────────────────────
 export const MAX_RECORD_SECONDS = 120          // 2-minute hard stop
@@ -72,6 +73,10 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
   const [reviewUrl,   setReviewUrl]   = useState<string | null>(null)
   const [reviewDur,   setReviewDur]   = useState<number>(0)
   const [sizeError,   setSizeError]   = useState<string | null>(null)
+  // Which camera to use; selfie by default. canSwitch is true with 2+ cameras.
+  const [facing,      setFacing]      = useState<Facing>("user")
+  const [canSwitch,   setCanSwitch]   = useState(false)
+  const facingRef     = useRef<Facing>("user")
 
   const liveVideoRef  = useRef<HTMLVideoElement>(null)
   const streamRef     = useRef<MediaStream | null>(null)
@@ -107,7 +112,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   // ── Request camera permission ──────────────────────────────────────────────
-  const requestCamera = useCallback(async () => {
+  const requestCamera = useCallback(async (nextFacing: Facing = facingRef.current) => {
     setState("requesting")
     setErrorMsg(null)
     setSizeError(null)
@@ -117,10 +122,22 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
       setState("error"); return
     }
 
+    // Release the current camera before opening another (needed to switch).
+    stopStream(streamRef.current)
+    streamRef.current = null
+
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+      // "ideal" (not "exact") so single-camera devices still open their camera.
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: nextFacing } },
+        audio: true,
+      })
       streamRef.current = stream
+      facingRef.current = nextFacing
+      setFacing(nextFacing)
       setState("previewing")
+      // Device list is only complete once permission is granted.
+      countCameras().then(n => setCanSwitch(n > 1))
       // Attach stream to live preview
       requestAnimationFrame(() => {
         if (liveVideoRef.current) {
@@ -142,6 +159,11 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
       setState("error")
     }
   }, [])
+
+  // ── Switch front/back camera (only between recordings) ───────────────────
+  const switchCamera = useCallback(() => {
+    requestCamera(otherFacing(facingRef.current))
+  }, [requestCamera])
 
   // ── Start recording ────────────────────────────────────────────────────────
   const startRecording = useCallback(() => {
@@ -260,7 +282,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
         <div className="space-y-3">
           <p className="text-zinc-400 text-sm">How would you like to add a video?</p>
           <button
-            onClick={requestCamera}
+            onClick={() => requestCamera()}
             aria-label="Record video"
             className="w-full flex items-center gap-3 px-4 py-4 rounded-2xl border
                        border-zinc-800 bg-zinc-800/30 text-zinc-300 hover:border-primary
@@ -299,7 +321,7 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
           </div>
           <div className="flex gap-2">
             <button
-              onClick={requestCamera}
+              onClick={() => requestCamera()}
               aria-label="Try again"
               className="flex-1 py-2.5 rounded-xl bg-primary/15 hover:bg-primary/25
                          text-primary text-sm font-semibold cursor-pointer transition-colors"
@@ -330,6 +352,19 @@ export function VideoRecorder({ onUseVideo, onSwitchToFile, onCleanupRef }: Vide
               className="w-full h-full object-cover"
               aria-label="Live camera preview"
             />
+            {/* Switch camera (top-right). Hidden while recording: browsers
+                can't swap the camera inside a running recording. */}
+            {canSwitch && state === "previewing" && (
+              <button
+                onClick={switchCamera}
+                aria-label={facing === "user" ? "Switch to back camera" : "Switch to front camera"}
+                className="absolute top-2 right-2 size-9 rounded-full bg-black/50 backdrop-blur-sm
+                           flex items-center justify-center cursor-pointer hover:bg-black/70
+                           transition-colors"
+              >
+                <RefreshCw className="size-4 text-white" />
+              </button>
+            )}
             {/* Recording indicator */}
             {state === "recording" && (
               <div className="absolute top-3 left-3 flex items-center gap-1.5
