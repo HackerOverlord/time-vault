@@ -103,3 +103,52 @@ describe('PhotoCapture — camera switching', () => {
     expect(screen.queryByRole('button', { name: /switch camera/i })).not.toBeInTheDocument()
   })
 })
+
+// ── Recording flow: live preview + "Use video" ───────────────────────────────
+
+class DataRecorder extends FakeRecorder {
+  stop() {
+    this.state = 'inactive'
+    this.ondataavailable?.({ data: new Blob(['frame'], { type: 'video/webm' }) })
+    this.onstop?.()
+  }
+}
+
+describe('VideoRecorder — recording flow', () => {
+  beforeEach(() => {
+    vi.stubGlobal('MediaRecorder', DataRecorder)
+    vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:review'), revokeObjectURL: vi.fn() })
+    // The production CSP blocks fetch() of blob: URLs; simulate that.
+    vi.stubGlobal('fetch', vi.fn(() => Promise.reject(new TypeError('Refused to connect (CSP)'))))
+  })
+
+  it('shows the live camera in the preview on first open (and while recording)', async () => {
+    stubDevices(1)
+    const user = userEvent.setup()
+    render(<VideoRecorder {...recorderProps} />)
+    await user.click(screen.getByRole('button', { name: /record video/i }))
+    const preview = await screen.findByLabelText(/live camera preview/i) as HTMLVideoElement
+    expect(preview.srcObject).not.toBeNull()
+
+    await user.click(screen.getByRole('button', { name: /start recording/i }))
+    expect((screen.getByLabelText(/live camera preview/i) as HTMLVideoElement).srcObject).not.toBeNull()
+  })
+
+  it('"Use video" hands the recording to the parent without fetching the blob: URL', async () => {
+    stubDevices(1)
+    const onUseVideo = vi.fn()
+    const user = userEvent.setup()
+    render(<VideoRecorder {...recorderProps} onUseVideo={onUseVideo} />)
+    await user.click(screen.getByRole('button', { name: /record video/i }))
+    await user.click(await screen.findByRole('button', { name: /start recording/i }))
+    await user.click(screen.getByRole('button', { name: /stop recording/i }))
+
+    await user.click(await screen.findByRole('button', { name: /use recorded video/i }))
+    expect(onUseVideo).toHaveBeenCalledTimes(1)
+    const file = onUseVideo.mock.calls[0][0] as File
+    expect(file).toBeInstanceOf(File)
+    expect(file.type).toMatch(/^video\//)
+    expect(file.size).toBeGreaterThan(0)
+    expect(fetch).not.toHaveBeenCalled()
+  })
+})
