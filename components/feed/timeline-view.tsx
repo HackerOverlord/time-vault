@@ -436,10 +436,12 @@ const MemoryCard = React.memo(function MemoryCard({ post, onClick }: MemoryCardP
                    focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/60"
         aria-label={post.caption ?? `Video from ${date}`}
       >
-        {/* Video: preload=metadata loads first frame on most browsers */}
+        {/* Video: preload=metadata plus a #t=0.1 media fragment makes the
+            browser seek and paint a real frame. Without it, WebM recorded in
+            the browser often renders as a blank tile. Data URIs are left as-is. */}
         {post.media_url ? (
           <video
-            src={post.media_url}
+            src={post.media_url.startsWith("data:") ? post.media_url : `${post.media_url}#t=0.1`}
             muted
             playsInline
             preload="metadata"

@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input"
 import { cn } from "@/lib/utils"
 import { CapsuleCard } from "@/components/feed/capsule-card"
 import { apiFetch } from "@/lib/api"
+import { formatTime, resolveVideoDuration } from "@/lib/videoTime"
 import { toast } from "sonner"
 import type { Post, Comment } from "@/lib/types"
 
@@ -56,6 +57,9 @@ function FeedPostInner({
   const [buffering, setBuffering]           = useState(false)
   // Progress [0,1] — coarse updates via timeupdate.
   const [progress, setProgress]             = useState(0)
+  // Whole seconds elapsed / total duration (NaN until known) for the timestamp.
+  const [elapsed, setElapsed]               = useState(0)
+  const [duration, setDuration]             = useState(NaN)
   // Ghost label re-fire key.
   const [ghostKey, setGhostKey]             = useState(0)
 
@@ -147,12 +151,16 @@ function FeedPostInner({
     const onPause    = () => setBuffering(false)
     const onEnded    = () => setBuffering(false)
     const onTimeUpdate = () => {
-      if (el.duration > 0) {
+      // Skip while duration is unknown (WebM from MediaRecorder reports Infinity).
+      if (Number.isFinite(el.duration) && el.duration > 0) {
         // Coarse update: round to nearest 1% to avoid excessive re-renders.
         const pct = Math.round((el.currentTime / el.duration) * 100) / 100
         setProgress(p => Math.abs(p - pct) >= 0.01 ? pct : p)
+        const secs = Math.floor(el.currentTime)
+        setElapsed(s => s === secs ? s : secs)
       }
     }
+    const cleanupDuration = resolveVideoDuration(el, setDuration)
 
     el.addEventListener("waiting",    onWaiting)
     el.addEventListener("playing",    onPlaying)
@@ -162,6 +170,7 @@ function FeedPostInner({
     el.addEventListener("timeupdate", onTimeUpdate)
 
     return () => {
+      cleanupDuration()
       el.removeEventListener("waiting",    onWaiting)
       el.removeEventListener("playing",    onPlaying)
       el.removeEventListener("canplay",    onCanPlay)
@@ -559,7 +568,7 @@ function FeedPostInner({
                    onClick={e => {
                      const rect = e.currentTarget.getBoundingClientRect()
                      const pct  = (e.clientX - rect.left) / rect.width
-                     if (videoRef.current) videoRef.current.currentTime = pct * (videoRef.current.duration || 0)
+                     if (videoRef.current && Number.isFinite(duration)) videoRef.current.currentTime = pct * duration
                    }}>
                 <div className="w-full h-[3px] bg-white/25 rounded-full relative">
                   <div className="absolute inset-y-0 left-0 bg-white/80 rounded-full"
@@ -570,15 +579,9 @@ function FeedPostInner({
               </div>
 
               {/* Timestamp */}
-              {videoRef.current && (
-                <span className="text-white/50 text-[10px] tabular-nums shrink-0 drop-shadow">
-                  {Math.floor((videoRef.current.currentTime || 0) / 60).toString().padStart(2,"0")}
-                  :{Math.floor((videoRef.current.currentTime || 0) % 60).toString().padStart(2,"0")}
-                  {" / "}
-                  {Math.floor((videoRef.current.duration || 0) / 60).toString().padStart(2,"0")}
-                  :{Math.floor((videoRef.current.duration || 0) % 60).toString().padStart(2,"0")}
-                </span>
-              )}
+              <span className="text-white/50 text-[10px] tabular-nums shrink-0 drop-shadow">
+                {formatTime(elapsed)} / {formatTime(duration)}
+              </span>
 
               {/* Fullscreen */}
               <button
