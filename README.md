@@ -1,5 +1,7 @@
 # Time Vault
 
+[![CI](https://github.com/HackerOverlord/time-vault/actions/workflows/ci.yml/badge.svg)](https://github.com/HackerOverlord/time-vault/actions/workflows/ci.yml)
+
 **Private memory sharing for families, with time capsules that open on a date you choose.**
 
 🔗 **Live app:** https://time-vault-imhg.vercel.app
@@ -37,7 +39,7 @@ Time Vault lets a family or a small group share photos, videos and notes in priv
 ## Running locally
 
 ```bash
-pnpm install          # or npm install
+pnpm install
 echo "NEXT_PUBLIC_API_URL=http://localhost:5000" > .env.local
 pnpm dev              # http://localhost:3000
 pnpm test             # Vitest
