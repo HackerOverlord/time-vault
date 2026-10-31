@@ -32,6 +32,7 @@ Time Vault lets a family or a small group share photos, videos and notes in priv
 ## Security highlights
 
 - JWT stored in `sessionStorage` (per tab) and sent as a Bearer header. Tokens are revoked when the password changes.
+- Optional **2-step verification:** a 6-digit code emailed at sign-in, turned on in Settings → Security.
 - Login lockout after repeated failures. All authorization is enforced server-side.
 - Locked capsules are redacted by the API: no caption and no media URL until unlock.
 - Content Security Policy, HSTS, `X-Frame-Options: DENY` and a strict Permissions-Policy (camera and mic only for this site).
