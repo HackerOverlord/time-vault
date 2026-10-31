@@ -12,6 +12,7 @@ import { SettingsScreen } from "@/components/screens/settings-screen"
 import { ClaimScreen }    from "@/components/screens/claim-screen"
 import { InviteScreen }   from "@/components/screens/invite-screen"
 import { ForgotPasswordScreen, ResetPasswordScreen } from "@/components/screens/password-reset-screens"
+import { TwoStepPrompt }  from "@/components/settings/two-step-prompt"
 
 export default function App() {
   const [screen, setScreen] = useState<Screen | null>(null)
@@ -108,6 +109,7 @@ export default function App() {
         <ResetPasswordScreen token={resetToken} onNavigate={navigate} />
       )}
       {screen === "feed"     && <FeedScreen     groupsVersion={groupsVersion} onNavigate={navigate} />}
+      {screen === "feed"     && <TwoStepPrompt />}
       {screen === "settings" && <SettingsScreen onNavigate={navigate} />}
       {screen === "invite"    && inviteToken && (
         <InviteScreen
