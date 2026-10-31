@@ -23,6 +23,7 @@
 import React, { useState, useRef, useEffect, useCallback } from "react"
 import { Camera, RotateCcw, Check, AlertCircle, Loader2, Folder, RefreshCw } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { countCameras } from "@/lib/camera"
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 /** Longest side cap before JPEG compression. */
@@ -54,6 +55,7 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
   const [capturedFile, setCapturedFile] = useState<File | null>(null)
   const [sizeError,    setSizeError]    = useState<string | null>(null)
   const [facingFront,  setFacingFront]  = useState(false)
+  const [canSwitch,    setCanSwitch]    = useState(false)   // true when 2+ cameras
 
   const videoRef  = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -106,6 +108,8 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
       const stream = await navigator.mediaDevices.getUserMedia(constraints)
       streamRef.current = stream
       setState("previewing")
+      // Device list is only complete once permission is granted.
+      countCameras().then(n => setCanSwitch(n > 1))
       requestAnimationFrame(() => {
         if (videoRef.current) {
           videoRef.current.srcObject = stream
@@ -290,8 +294,8 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
               className="w-full h-full object-cover"
               aria-label="Live camera preview"
             />
-            {/* Switch camera button (top-right) */}
-            <button
+            {/* Switch camera button (top-right) — only when there's another camera */}
+            {canSwitch && <button
               onClick={switchCamera}
               aria-label="Switch camera"
               className="absolute top-2 right-2 size-9 rounded-full bg-black/50 backdrop-blur-sm
@@ -299,7 +303,7 @@ export function PhotoCapture({ onUsePhoto, onSwitchToFile, onCleanupRef }: Photo
                          transition-colors"
             >
               <RefreshCw className="size-4 text-white" />
-            </button>
+            </button>}
           </div>
           <button
             onClick={capturePhoto}
