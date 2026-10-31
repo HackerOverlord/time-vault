@@ -119,6 +119,9 @@ export function ResetPasswordScreen({ token, onNavigate }: NavProps & { token: s
   const [confirm, setConfirm] = useState("")
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  // Authenticator users must also give an app or recovery code.
+  const [needCode, setNeedCode] = useState(false)
+  const [code, setCode] = useState("")
 
   const submit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -130,13 +133,17 @@ export function ResetPasswordScreen({ token, onNavigate }: NavProps & { token: s
       const res = await fetch(`${API}/api/reset-password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ token, new_password: password }),
+        body: JSON.stringify(needCode ? { token, new_password: password, code } : { token, new_password: password }),
       })
       const d = await res.json().catch(() => ({}))
       if (res.ok) {
         sessionStorage.removeItem("token")
         toast.success("Password updated. Sign in with your new password.")
         onNavigate("login")
+      } else if (d.mfa_code_required) {
+        // First time: just reveal the field. After that: show what went wrong.
+        if (needCode) setError(d.error ?? "That code isn't right.")
+        setNeedCode(true)
       } else {
         setError(d.error ?? "Something went wrong. Try again.")
       }
@@ -175,6 +182,27 @@ export function ResetPasswordScreen({ token, onNavigate }: NavProps & { token: s
             onChange={e => setConfirm(e.target.value)}
           />
         </div>
+        {needCode && (
+          <div className="space-y-1.5">
+            <Label htmlFor="reset-code" className="text-zinc-400 text-sm">
+              Code from your authenticator app (or a recovery code)
+            </Label>
+            <p className="text-zinc-500 text-xs">
+              Your account uses an authenticator app, so we need it to change your password.
+            </p>
+            <Input
+              id="reset-code"
+              required
+              autoFocus
+              autoComplete="one-time-code"
+              autoCapitalize="none"
+              maxLength={14}
+              className={inputClass}
+              value={code}
+              onChange={e => setCode(e.target.value)}
+            />
+          </div>
+        )}
         {error && <p role="alert" className="text-red-400 text-sm">{error}</p>}
         <Button type="submit" disabled={loading} className={buttonClass}>
           {loading ? "Saving…" : "Update password"}

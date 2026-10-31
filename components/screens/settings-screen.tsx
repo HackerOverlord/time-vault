@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label"
 import { cn } from "@/lib/utils"
 import { API, ah, jsonH } from "@/lib/api"
 import type { Screen } from "@/lib/navigation"
-import { TwoStepCard } from "@/components/settings/two-step-card"
+import { TwoStepCard, mfaStateFromMe, type MfaState } from "@/components/settings/two-step-card"
 
 // ── Focus trap helper ─────────────────────────────────────────────────────────
 const FOCUSABLE =
@@ -83,7 +83,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
   const [deleteErr, setDeleteErr]       = useState("")
   const [deleting, setDeleting]         = useState(false)
   const [notifications, setNotifications] = useState<any[]>([])
-  const [mfaEnabled, setMfaEnabled]     = useState(false)
+  const [mfa, setMfa]                   = useState<MfaState>({ enabled: false, method: null, codesLeft: 0 })
 
   // Focus restore refs for modals
   const deleteOpenTriggerRef = useRef<HTMLButtonElement | null>(null)
@@ -119,7 +119,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
         setLastName(parts.slice(1).join(" ") || "")
         setEmail(d.email || "")
         if (d.avatar) setAvatar(d.avatar)
-        setMfaEnabled(!!d.mfaEnabled)
+        setMfa(mfaStateFromMe(d))
       })
   }, [])
 
@@ -428,7 +428,7 @@ export function SettingsScreen({ onNavigate }: SettingsScreenProps) {
                 </Button>
               </div>
 
-              <TwoStepCard enabled={mfaEnabled} onChange={setMfaEnabled} />
+              <TwoStepCard state={mfa} onChange={setMfa} />
 
               <div className="bg-zinc-900 rounded-2xl border border-red-500/20 p-8 space-y-4">
                 <h2 className="text-red-400 font-bold text-lg">Danger Zone</h2>
