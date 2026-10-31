@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { Toaster } from "sonner"
 import type { Screen } from "@/lib/navigation"
 import type { Group } from "@/lib/types"
@@ -27,7 +27,13 @@ export default function App() {
   // Canonical claim URL: /?screen=claim&token=<token>
   // The token is stored in component state so it survives within-session navigation
   // but is not persisted to sessionStorage (security: single-use, expires).
+  // Read the start-up URL once. (React dev mode runs effects twice; the first
+  // pass strips reset/claim tokens from the address bar, so a second pass
+  // would otherwise see no token and fall back to the sign-in screen.)
+  const readUrlOnce = useRef(false)
   useEffect(() => {
+    if (readUrlOnce.current) return
+    readUrlOnce.current = true
     // /invite/<token> path support — redirect to SPA-safe ?screen=invite&token=X
     // A real /invite/[token] Next.js route (not yet created) would 404 on Vercel.
     // Normalise any direct-path links to the query-param form which the SPA handles.
