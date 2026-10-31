@@ -12,7 +12,8 @@ export type FeedFilter = "all" | "image" | "video" | "text" | "capsule"
  *
  * - Normalises the query once (trim + lowercase).
  * - Empty or whitespace-only query matches everything.
- * - Searches caption (case-insensitive substring) and vault_name.
+ * - Searches caption, vault_name and author_name (case-insensitive substring).
+ *   Author names are public metadata, so locked capsules match by author too.
  * - Applies media-type or capsule filter.
  * - Never mutates the source array.
  * - Handles missing / null captions safely.
@@ -36,7 +37,8 @@ export function filterPosts(
     if (q !== "") {
       const caption = (post.caption ?? "").toLowerCase()
       const vault   = (post.vault_name ?? "").toLowerCase()
-      if (!caption.includes(q) && !vault.includes(q)) return false
+      const author  = (post.author_name ?? "").toLowerCase()
+      if (!caption.includes(q) && !vault.includes(q) && !author.includes(q)) return false
     }
 
     return true

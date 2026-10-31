@@ -193,7 +193,9 @@ export function UploadModal({ groups, groupsStatus, onClose, onPosted }: UploadM
       return
     }
 
-    // mediaType is already set from the user's explicit selection — do not override it here.
+    // Keep mediaType in lockstep with the validated file (normally already equal,
+    // since the user picked Photo/Video before the file dialog opened).
+    setMediaType(intended)
     if (previewUrlRef.current) URL.revokeObjectURL(previewUrlRef.current)
     setMediaFile(file)
     setPreview(URL.createObjectURL(file))

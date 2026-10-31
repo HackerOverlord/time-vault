@@ -1,18 +1,15 @@
 /**
- * Pass 21 — upload submission payload tests.
+ * Upload submission payload tests.
  *
- * The UploadModal reads files via FileReader.readAsDataURL and submits JSON
- * (not FormData). These tests assert the actual JSON body sent to apiFetch.
+ * Text posts go through apiFetch as JSON. Photo and video posts are sent as
+ * multipart/form-data via XMLHttpRequest (for upload progress); the backend
+ * streams the file to R2. These tests assert what is actually sent.
  *
- * Multipart/FormData: the production implementation does NOT use FormData for
- * post uploads — it encodes media as a base64 data URI in the JSON body.
- * Tests verify the base64 data URI is present for image and video uploads.
- *
- * The unlock_at field is a plain YYYY-MM-DD string from <input type="date">,
- * sent as-is to the backend (no local→UTC conversion in the client).
+ * unlock_at is a plain YYYY-MM-DD string from <input type="date">; the client
+ * also sends tz_offset_minutes so the API can judge "tomorrow" in local time.
  */
 import React from 'react'
-import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
@@ -24,6 +21,15 @@ vi.mock('@/components/ui/button', () => ({
 vi.mock('@/components/ui/label', () => ({
   Label: ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) =>
     <label htmlFor={htmlFor}>{children}</label>,
+}))
+// Camera/recorder need real devices; stand-ins expose the "choose a file" path.
+vi.mock('@/components/upload/photo-capture', () => ({
+  PhotoCapture: ({ onSwitchToFile }: { onSwitchToFile: () => void }) =>
+    <button onClick={onSwitchToFile}>Choose photo file</button>,
+}))
+vi.mock('@/components/upload/video-recorder', () => ({
+  VideoRecorder: ({ onSwitchToFile }: { onSwitchToFile: () => void }) =>
+    <button onClick={onSwitchToFile}>Choose video file</button>,
 }))
 vi.mock('@/lib/api', async (orig) => ({
   ...(await orig<typeof import('@/lib/api')>()),
@@ -39,24 +45,6 @@ const mockApiFetch = vi.mocked(apiFetch)
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 const GROUP = { id: 'v1', name: 'My Vault', member_count: 1,
                 created_by: 'u1', user_role: 'owner' as const }
-
-// Mock FileReader so readAsDataURL fires in jsdom.
-// The upload modal does: reader.onload = ...; reader.readAsDataURL(file)
-// We capture the instance and fire onload via setTimeout so the assignment
-// has already happened by the time the callback runs.
-function mockFileReader(mimeType: string) {
-  const dataUri = `data:${mimeType};base64,AAAA`
-  vi.stubGlobal('FileReader', vi.fn().mockImplementation(function(this: any) {
-    this.result  = dataUri
-    this.onload  = null
-    this.onerror = null
-    this.readAsDataURL = () => {
-      // Defer so the caller can set .onload before we fire it
-      setTimeout(() => { if (this.onload) this.onload() }, 0)
-    }
-  }))
-  return dataUri
-}
 
 const POSTED_POST: Post = {
   id: 'p1', author_name: 'Alice', author_id: 'u1', author_avatar: '',
@@ -107,8 +95,9 @@ describe('UploadModal — text post payload', () => {
     const body = lastBody()
     expect(body.media_type).toBe('text')
     expect(body.caption).toBe('hello world')
-    expect(body.media_url).toBeNull()
+    expect(body.media_url).toBeUndefined()   // text posts carry no media
     expect(body.unlock_at).toBeNull()
+    expect(typeof body.tz_offset_minutes).toBe('number')
   })
 
   it('POSTs to /api/vaults/<id>/posts', async () => {
@@ -126,134 +115,92 @@ describe('UploadModal — text post payload', () => {
 })
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Image upload — base64 data URI in JSON body
+// Photo / video upload — multipart FormData via XMLHttpRequest
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe('UploadModal — image upload payload', () => {
-  beforeEach(() => {
-    mockApiFetch.mockResolvedValue({ ok: true, data: POSTED_POST })
+/** Minimal XHR stand-in that records what was sent and can complete the upload. */
+function stubXhr() {
+  const xhr = {
+    open: vi.fn(), setRequestHeader: vi.fn(), abort: vi.fn(), send: vi.fn(),
+    timeout: 0, status: 0, responseText: '',
+    onload: null as null | (() => void),
+    onerror: null as null | (() => void),
+    ontimeout: null as null | (() => void),
+    upload: { addEventListener: vi.fn() },
+  }
+  vi.stubGlobal('XMLHttpRequest', vi.fn(() => xhr))
+  return xhr
+}
+
+function sentForm(xhr: ReturnType<typeof stubXhr>): FormData {
+  expect(xhr.send).toHaveBeenCalled()
+  return xhr.send.mock.calls[0][0] as FormData
+}
+
+async function chooseFile(user: ReturnType<typeof userEvent.setup>, kind: 'image' | 'video') {
+  const file = kind === 'image'
+    ? new File([new Uint8Array([0xFF, 0xD8, 0xFF])], 'photo.jpg', { type: 'image/jpeg' })
+    : new File([new Uint8Array([0x00, 0x00, 0x00])], 'clip.mp4', { type: 'video/mp4' })
+  // Real path: pick Photo/Video, then "choose a file" instead of the camera.
+  await user.click(screen.getByRole('button', { name: kind === 'image' ? /share a photo/i : /share a video/i }))
+  await user.click(screen.getByRole('button', { name: kind === 'image' ? /choose photo file/i : /choose video file/i }))
+  await user.upload(screen.getByLabelText(/select a photo or video/i), file)
+  await screen.findByPlaceholderText(/say something/i)
+  return file
+}
+
+async function setCapsuleDate(user: ReturnType<typeof userEvent.setup>) {
+  await user.click(screen.getByRole('button', { name: /enable time capsule|time capsule/i }))
+  const d = new Date(); d.setDate(d.getDate() + 8)
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  const dateInput = document.getElementById('upload-unlock-date') as HTMLInputElement
+  await user.clear(dateInput)
+  await user.type(dateInput, iso)
+  return iso
+}
+
+for (const kind of ['image', 'video'] as const) {
+  describe(`UploadModal — ${kind} upload payload`, () => {
+    beforeEach(() => {
+      vi.stubGlobal('URL', { createObjectURL: vi.fn(() => 'blob:preview'), revokeObjectURL: vi.fn() })
+    })
+    afterEach(() => { vi.unstubAllGlobals() })
+
+    it(`sends the ${kind} file itself (not base64) to /api/vaults/<id>/posts`, async () => {
+      const xhr = stubXhr()
+      const user = userEvent.setup()
+      render(<UploadModal {...BASE_PROPS} />)
+      const file = await chooseFile(user, kind)
+
+      await user.type(screen.getByPlaceholderText(/say something/i), `my ${kind}`)
+      await user.click(screen.getByRole('button', { name: /share now/i }))
+
+      expect(xhr.open).toHaveBeenCalledWith('POST', expect.stringMatching(/\/api\/vaults\/v1\/posts$/))
+      const form = sentForm(xhr)
+      expect(form.get('media')).toBe(file)
+      expect(form.get('media_type')).toBe(kind)
+      expect(form.get('caption')).toBe(`my ${kind}`)
+      expect(form.get('unlock_at')).toBeNull()
+      expect(form.get('media_url')).toBeNull()     // no base64 blob in the body
+    })
+
+    it(`${kind} capsule includes unlock_at and tz_offset_minutes`, async () => {
+      const xhr = stubXhr()
+      const user = userEvent.setup()
+      render(<UploadModal {...BASE_PROPS} />)
+      await chooseFile(user, kind)
+      await user.type(screen.getByPlaceholderText(/say something/i), `capsule ${kind}`)
+      const iso = await setCapsuleDate(user)
+
+      await user.click(screen.getByRole('button', { name: /lock.*schedule|share now/i }))
+
+      const form = sentForm(xhr)
+      expect(form.get('media_type')).toBe(kind)
+      expect(form.get('unlock_at')).toBe(iso)
+      expect(form.get('tz_offset_minutes')).toBe(String(new Date().getTimezoneOffset()))
+    })
   })
-
-  afterEach(() => { vi.unstubAllGlobals() })
-
-  it('image file is submitted as base64 data URI in media_url', async () => {
-    const expectedUri = mockFileReader('image/jpeg')
-    const user = userEvent.setup()
-    render(<UploadModal {...BASE_PROPS} />)
-
-    const file = new File([new Uint8Array([0xFF, 0xD8])], 'photo.jpg', { type: 'image/jpeg' })
-    const fileInput = screen.getByLabelText(/select a photo or video/i)
-    await user.upload(fileInput, file)
-
-    // Wait for FileReader.onload → setMediaData → setStep("compose")
-    await screen.findByPlaceholderText(/say something|what do you want to say/i)
-
-    await user.type(screen.getByPlaceholderText(/say something|what do you want to say/i), 'my photo')
-    await user.click(screen.getByRole('button', { name: /share now/i }))
-
-    await waitFor(() => expect(mockApiFetch).toHaveBeenCalled())
-    const body = lastBody()
-    expect(body.media_type).toBe('image')
-    expect(body.caption).toBe('my photo')
-    expect(body.media_url).toBe(expectedUri)
-    expect((body.media_url as string).startsWith('data:image/')).toBe(true)
-    expect(body.unlock_at).toBeNull()
-  })
-
-  it('image capsule includes unlock_at in payload', async () => {
-    const user = userEvent.setup()
-    render(<UploadModal {...BASE_PROPS} />)
-
-    mockFileReader('image/jpeg')
-    const file = new File([new Uint8Array([0xFF, 0xD8])], 'photo.jpg', { type: 'image/jpeg' })
-    const fileInput = screen.getByLabelText(/select a photo or video/i)
-    await user.upload(fileInput, file)
-
-    await screen.findByPlaceholderText(/say something|what do you want to say/i)
-
-    await user.type(screen.getByPlaceholderText(/say something|what do you want to say/i), 'capsule photo')
-
-    // Enable time capsule
-    await user.click(screen.getByRole('button', { name: /enable time capsule|time capsule/i }))
-
-    const future = new Date(Date.now() + 8 * 24 * 3600 * 1000)
-    const futureISO = future.toISOString().split('T')[0]
-    const dateInput = document.getElementById('upload-unlock-date') as HTMLInputElement
-    await user.clear(dateInput)
-    await user.type(dateInput, futureISO)
-
-    await user.click(screen.getByRole('button', { name: /lock.*schedule|share now/i }))
-
-    await waitFor(() => expect(mockApiFetch).toHaveBeenCalled())
-    const body = lastBody()
-    expect(body.media_type).toBe('image')
-    expect(body.unlock_at).toBe(futureISO)
-  })
-})
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Video upload — base64 data URI in JSON body
-// ─────────────────────────────────────────────────────────────────────────────
-
-describe('UploadModal — video upload payload', () => {
-  beforeEach(() => {
-    mockApiFetch.mockResolvedValue({ ok: true, data: POSTED_POST })
-  })
-
-  afterEach(() => { vi.unstubAllGlobals() })
-
-  it('video file submitted as base64 data URI with correct media_type', async () => {
-    const user = userEvent.setup()
-    render(<UploadModal {...BASE_PROPS} />)
-
-    const expectedUri = mockFileReader('video/mp4')
-    const file = new File([new Uint8Array([0x00, 0x00, 0x00])], 'clip.mp4', { type: 'video/mp4' })
-
-    const fileInput = screen.getByLabelText(/select a photo or video/i)
-    await user.upload(fileInput, file)
-
-    await screen.findByPlaceholderText(/say something|what do you want to say/i)
-
-    await user.type(screen.getByPlaceholderText(/say something|what do you want to say/i), 'my video')
-    await user.click(screen.getByRole('button', { name: /share now/i }))
-
-    await waitFor(() => expect(mockApiFetch).toHaveBeenCalled())
-    const body = lastBody()
-    expect(body.media_type).toBe('video')
-    expect(body.caption).toBe('my video')
-    expect(body.media_url).toBe(expectedUri)
-    expect((body.media_url as string).startsWith('data:video/')).toBe(true)
-    expect(body.unlock_at).toBeNull()
-  })
-
-  it('video capsule includes unlock_at in payload', async () => {
-    const user = userEvent.setup()
-    render(<UploadModal {...BASE_PROPS} />)
-
-    mockFileReader('video/mp4')
-    const file = new File([new Uint8Array([0x00, 0x00, 0x00])], 'clip.mp4', { type: 'video/mp4' })
-    const fileInput = screen.getByLabelText(/select a photo or video/i)
-    await user.upload(fileInput, file)
-
-    await screen.findByPlaceholderText(/say something|what do you want to say/i)
-
-    await user.type(screen.getByPlaceholderText(/say something|what do you want to say/i), 'capsule video')
-    await user.click(screen.getByRole('button', { name: /enable time capsule|time capsule/i }))
-
-    const future = new Date(Date.now() + 8 * 24 * 3600 * 1000)
-    const futureISO = future.toISOString().split('T')[0]
-    const dateInput = document.getElementById('upload-unlock-date') as HTMLInputElement
-    await user.clear(dateInput)
-    await user.type(dateInput, futureISO)
-
-    await user.click(screen.getByRole('button', { name: /lock.*schedule|share now/i }))
-
-    await waitFor(() => expect(mockApiFetch).toHaveBeenCalled())
-    const body = lastBody()
-    expect(body.media_type).toBe('video')
-    expect(body.unlock_at).toBe(futureISO)
-  })
-})
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // unlock_at field — date validation
