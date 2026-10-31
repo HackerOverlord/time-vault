@@ -11,12 +11,14 @@ import { GroupScreen }    from "@/components/screens/group-screen"
 import { SettingsScreen } from "@/components/screens/settings-screen"
 import { ClaimScreen }    from "@/components/screens/claim-screen"
 import { InviteScreen }   from "@/components/screens/invite-screen"
+import { ForgotPasswordScreen, ResetPasswordScreen } from "@/components/screens/password-reset-screens"
 
 export default function App() {
   const [screen, setScreen] = useState<Screen | null>(null)
   const [activeGroup, setActiveGroup] = useState<Group | null>(null)
   const [claimToken,  setClaimToken]  = useState<string | null>(null)
   const [inviteToken, setInviteToken] = useState<string | null>(null)
+  const [resetToken,  setResetToken]  = useState<string | null>(null)
   // Increments on vault mutations so FeedScreen re-fetches groups without remounting.
   const [groupsVersion, setGroupsVersion] = useState(0)
 
@@ -40,6 +42,14 @@ export default function App() {
     const params = new URLSearchParams(window.location.search)
     const urlScreen = params.get("screen")
     const urlToken  = params.get("token")
+    if (urlScreen === "reset" && urlToken) {
+      // Keep the token in memory only and strip it from the address bar so it
+      // doesn't linger in history or leak via Referer.
+      setResetToken(urlToken)
+      setScreen("reset")
+      window.history.replaceState({}, "", window.location.pathname)
+      return
+    }
     if (urlScreen === "claim" && urlToken) {
       setClaimToken(urlToken)
       setScreen("claim")
@@ -90,6 +100,10 @@ export default function App() {
     <div className="min-h-screen bg-background text-foreground antialiased">
       {screen === "login"    && <LoginScreen    onNavigate={navigate} />}
       {screen === "register" && <RegisterScreen onNavigate={navigate} />}
+      {screen === "forgot"   && <ForgotPasswordScreen onNavigate={navigate} />}
+      {screen === "reset"    && resetToken && (
+        <ResetPasswordScreen token={resetToken} onNavigate={navigate} />
+      )}
       {screen === "feed"     && <FeedScreen     groupsVersion={groupsVersion} onNavigate={navigate} />}
       {screen === "settings" && <SettingsScreen onNavigate={navigate} />}
       {screen === "invite"    && inviteToken && (
