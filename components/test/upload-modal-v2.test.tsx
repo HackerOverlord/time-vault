@@ -17,6 +17,11 @@ vi.mock('@/components/ui/label', () => ({
   Label: ({ children, htmlFor }: { children: React.ReactNode; htmlFor?: string }) =>
     <label htmlFor={htmlFor}>{children}</label>,
 }))
+// Recorder needs a real camera; the stand-in exposes the "choose a file" path.
+vi.mock('@/components/upload/video-recorder', () => ({
+  VideoRecorder: ({ onSwitchToFile }: { onSwitchToFile: () => void }) =>
+    <button onClick={onSwitchToFile}>Choose video file</button>,
+}))
 vi.mock('@/lib/api', async (orig) => ({
   ...(await orig<typeof import('@/lib/api')>()),
   apiFetch: vi.fn(),
@@ -185,6 +190,9 @@ describe('File size limits', () => {
     render(<UploadModal {...BASE} />)
     const file = new File([new Uint8Array(10)], 'clip.mp4', { type: 'video/mp4' })
     Object.defineProperty(file, 'size', { value: 10 * 1024 * 1024 })
+    // Real path: pick Video, then "choose a file" instead of recording.
+    await user.click(screen.getByRole('button', { name: /share a video/i }))
+    await user.click(screen.getByRole('button', { name: /choose video file/i }))
     await user.upload(screen.getByLabelText(/select a photo or video/i), file)
     expect(await screen.findByPlaceholderText(/say something/i)).toBeInTheDocument()
   })

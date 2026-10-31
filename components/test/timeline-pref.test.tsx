@@ -154,7 +154,7 @@ describe('TimelineView — video post visual indicator', () => {
     like_count: 0, comment_count: 0, has_liked: false,
   }
 
-  it('timeline video card renders a play-icon overlay (aria-hidden, pointer-events-none)', async () => {
+  it('timeline video card renders a decorative (aria-hidden) play-icon overlay', async () => {
     const { TimelineView } = await import('@/components/feed/timeline-view')
     render(
       <TimelineView
@@ -168,10 +168,9 @@ describe('TimelineView — video post visual indicator', () => {
         onUpload={vi.fn()}
       />
     )
-    // The play overlay SVG path is aria-hidden and inside a pointer-events-none div.
-    // We verify its container is present via the SVG path.
-    const paths = document.querySelectorAll('path[d="M8 5v14l11-7z"]')
-    expect(paths.length).toBeGreaterThan(0)
+    // The overlay uses lucide's <Play> icon; it is decorative, so aria-hidden.
+    const icons = document.querySelectorAll('svg.lucide-play[aria-hidden="true"]')
+    expect(icons.length).toBeGreaterThan(0)
   })
 
   it('timeline video card does not autoplay (video element has preload=none)', async () => {

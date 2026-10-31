@@ -10,8 +10,24 @@ import userEvent from '@testing-library/user-event'
 import { okResp, errResp, netFail, mockFetchByUrl, mockResponse, POST, GROUP, USER } from './helpers'
 
 // ── Mock heavy dependencies that FeedScreen imports ───────────────────────────
+// Lightweight sidebar stand-in: one button per vault, wired to onSelectGroup,
+// mirroring how users switch vaults on desktop (the old pill strip is gone).
 vi.mock('@/components/feed/desktop-sidebar', () => ({
-  DesktopSidebar: () => <aside data-testid="desktop-sidebar" />,
+  DesktopSidebar: ({ groups, activeGroupId, onSelectGroup }: {
+    groups: { id: string; name: string }[]
+    activeGroupId: string
+    onSelectGroup: (id: string) => void
+  }) => (
+    <aside data-testid="desktop-sidebar">
+      {groups.map(g => (
+        <button key={g.id} data-testid={`sidebar-vault-${g.name}`}
+                aria-current={activeGroupId === g.id ? 'true' : undefined}
+                onClick={() => onSelectGroup(g.id)}>
+          {g.name}
+        </button>
+      ))}
+    </aside>
+  ),
 }))
 vi.mock('@/components/feed/notification-panel', () => ({
   NotificationPanel: () => <div data-testid="notif-panel" />,
@@ -322,20 +338,8 @@ describe('FeedScreen — offline behavior', () => {
     newVaultBtns.forEach(btn => expect(btn).toBeDisabled())
   })
 
-  it('disables Join Vault while offline', async () => {
-    setupFetch()
-    renderFeed()
-    await screen.findByTestId('feed-post')
-
-    act(() => {
-      ;(navigator as unknown as { onLine: boolean }).onLine = false
-      window.dispatchEvent(new Event('offline'))
-    })
-
-    await screen.findByText(/you're offline/i)
-    const joinVaultBtns = screen.getAllByRole('button', { name: /join vault/i })
-    joinVaultBtns.forEach(btn => expect(btn).toBeDisabled())
-  })
+  // (Removed: "disables Join Vault while offline". The Join Vault button was
+  //  intentionally removed from FeedScreen; vaults are joined via invite links.)
 
   it('vault retry is disabled while offline', async () => {
     mockFetchByUrl(vi.mocked(fetch), {
@@ -475,8 +479,8 @@ describe('FeedScreen — retry-state preservation', () => {
     // Wait for feed to load
     expect(await screen.findAllByTestId('feed-post')).toHaveLength(2)
 
-    // 1. Select a specific vault (Family Vault pill)
-    await user.click(screen.getByTestId('vault-pill-Family Vault'))
+    // 1. Select a specific vault (Family Vault, via the sidebar)
+    await user.click(screen.getByTestId('sidebar-vault-Family Vault'))
     // Mock subsequent fetches after vault switch
     mockFetchByUrl(vi.mocked(fetch), {
       '/api/posts':         () => okResp([imagePost, textPost]),
@@ -484,9 +488,9 @@ describe('FeedScreen — retry-state preservation', () => {
       '/api/me':            () => okResp(USER()),
       '/api/notifications': () => okResp([]),
     })
-    // Vault pill now shows active for Family Vault
+    // Sidebar now shows Family Vault as active
     await waitFor(() => {
-      expect(screen.getByTestId('vault-pill-Family Vault')).toHaveAttribute('aria-pressed', 'true')
+      expect(screen.getByTestId('sidebar-vault-Family Vault')).toHaveAttribute('aria-current', 'true')
     })
 
     // 2. Enter a search query
@@ -496,14 +500,16 @@ describe('FeedScreen — retry-state preservation', () => {
     await waitFor(() => expect(screen.getAllByTestId('feed-post')).toHaveLength(2))
 
     // 3. Select a non-default media filter (Photos / image)
-    const photosBtn = screen.getByRole('button', { name: /^photos$/i })
+    // The filter pills can render more than once (responsive layouts); use the toggle pill.
+    const photosBtn = screen.getAllByRole('button', { name: /^photos$/i })
+      .find(b => b.hasAttribute('aria-pressed'))!
     await user.click(photosBtn)
     // Only the image post should be visible now
     await waitFor(() => expect(screen.getAllByTestId('feed-post')).toHaveLength(1))
     expect(screen.getByText('Image memory')).toBeInTheDocument()
 
-    // Confirm vault pill still active before refresh failure
-    expect(screen.getByTestId('vault-pill-Family Vault')).toHaveAttribute('aria-pressed', 'true')
+    // Confirm Family Vault still active before refresh failure
+    expect(screen.getByTestId('sidebar-vault-Family Vault')).toHaveAttribute('aria-current', 'true')
 
     // 4. States confirmed before simulating refresh failure
     // Posts filtered to image only (1 visible), search has "memory", Photos pressed
@@ -512,8 +518,8 @@ describe('FeedScreen — retry-state preservation', () => {
     // Use getBy with the label to get one specific instance
     const searchInputs = screen.getAllByRole('searchbox')
     expect(searchInputs[0]).toHaveValue('memory')
-    expect(screen.getAllByRole('button', { name: /^photos$/i })[0])
-      .toHaveAttribute('aria-pressed', 'true')
+    expect(screen.getAllByRole('button', { name: /^photos$/i })
+      .some(b => b.getAttribute('aria-pressed') === 'true')).toBe(true)
 
     // 5. Trigger a vault refresh failure via groupsVersion — groups fail, posts preserved
     mockFetchByUrl(vi.mocked(fetch), {
