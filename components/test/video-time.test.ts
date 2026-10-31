@@ -85,3 +85,18 @@ describe("resolveVideoDuration", () => {
     expect(onDuration).not.toHaveBeenCalled()
   })
 })
+
+import { localISODate } from "@/lib/countdown"
+
+describe("localISODate", () => {
+  it("uses the local calendar date, not UTC", () => {
+    // 9 PM local on Oct 30 — in UTC-4 this is already Oct 31 in UTC.
+    const evening = new Date(2026, 9, 30, 21, 0, 0)
+    expect(localISODate(0, evening)).toBe("2026-10-30")
+    expect(localISODate(1, evening)).toBe("2026-10-31")
+  })
+
+  it("rolls over months and years", () => {
+    expect(localISODate(1, new Date(2026, 11, 31, 12))).toBe("2027-01-01")
+  })
+})

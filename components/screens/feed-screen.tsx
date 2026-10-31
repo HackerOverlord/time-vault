@@ -1199,7 +1199,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
 
           {/* Row 2: Heading — full width, left-aligned */}
           <div className="px-4 pt-0 pb-1.5">
-            <h1 className="text-white font-bold text-xl leading-tight tracking-tight">Your memories</h1>
+            <h1 className="text-white font-bold text-xl leading-tight tracking-tight truncate">{activeVault?.name ?? "Your memories"}</h1>
           </div>
         </div>
 
@@ -1212,7 +1212,7 @@ export function FeedScreen({ onNavigate, groupsVersion = 0 }: FeedScreenProps) {
         <div className="hidden lg:flex flex-col shrink-0 border-b border-white/[0.06]"
              style={{ background: "rgba(0,0,0,0.60)" }}>
           <div className="flex items-center justify-between px-6 py-3 gap-4">
-            <h1 className="text-white font-bold text-xl">Your memories</h1>
+            <h1 className="text-white font-bold text-xl truncate">{activeVault?.name ?? "Your memories"}</h1>
             <div className="flex items-center gap-2">
               <NotificationBell
                 triggerRef={desktopNotifBellRef}
